@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:recipe_flutter_app/constants.dart';
 import 'package:recipe_flutter_app/models/user.dart';
 import 'package:recipe_flutter_app/providers/auth_provider.dart';
+import 'package:recipe_flutter_app/providers/user_provider.dart';
 
 class UserDetailScreen extends StatefulWidget {
   final User user;
@@ -31,7 +32,13 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
   }
 
   followUser() async {
-    try {} catch (e) {}
+    try {
+      await Provider.of<UserProvider>(context, listen: false)
+          .followUser(widget.user.id);
+      await fetchUser();
+    } catch (e) {
+      showSnackbar(e.toString(), context);
+    }
   }
 
   @override
@@ -50,8 +57,12 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
             : Column(
                 children: [
                   Text(_user!.username),
+                  Text("Followers: ${_user!.followers.length}"),
+                  Text("Following: ${_user!.following.length}"),
                   ElevatedButton.icon(
-                      onPressed: () {},
+                      onPressed: () {
+                        followUser();
+                      },
                       icon: Icon(Icons.add),
                       label: Text('Follow'))
                 ],

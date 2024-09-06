@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_flutter_app/constants.dart';
@@ -31,20 +32,16 @@ class AuthInterceptor extends Interceptor {
     // Check if the error is a 401 Unauthorized error
     if (err.response?.statusCode == 401) {
       // Refresh the token
-      final refreshedResponse = await refreshToken();
-      print(refreshedResponse);
+      final newAccessTokenResponse = await refreshToken();
 
-      if (refreshedResponse != null && refreshedResponse.statusCode == 200) {
+      if (newAccessTokenResponse != null &&
+          newAccessTokenResponse.statusCode == 200) {
         // Update the token in storage and retry the request
-        String newToken = refreshedResponse.data["accessToken"];
+        String newToken = newAccessTokenResponse.data["accessToken"];
         await secureStorage.write(key: "accessToken", value: newToken);
 
         // Retry the original request with the updated token
         handler.resolve(await _retry(err.requestOptions, newToken));
-      } else if (refreshedResponse != null &&
-          refreshedResponse.statusCode == 401) {
-        await Provider.of<AuthProvider>(navigatorKey.currentState!.context)
-            .logout();
       } else {
         handler.next(err);
       }
@@ -55,6 +52,7 @@ class AuthInterceptor extends Interceptor {
 
   Future<Response<dynamic>?> refreshToken() async {
     try {
+      final dio = Dio();
       // Assume you have the refresh token saved
       String? refreshToken = await secureStorage.read(key: "refreshToken");
 
@@ -67,7 +65,6 @@ class AuthInterceptor extends Interceptor {
           },
         ),
       );
-      print(response);
 
       // Return the response if successful
       return response;
@@ -79,6 +76,11 @@ class AuthInterceptor extends Interceptor {
       if (e.response != null) {
         print("Response data: ${e.response?.data}");
         print("Response status: ${e.response?.statusCode}");
+        if (e.response?.statusCode == 401) {
+          await Provider.of<AuthProvider>(navigatorKey.currentState!.context,
+                  listen: false)
+              .logout();
+        }
       }
 
       return null;
@@ -94,7 +96,6 @@ class AuthInterceptor extends Interceptor {
         "Authorization": "Bearer $newToken",
       },
     );
-
     return dio.request<dynamic>(
       requestOptions.path,
       data: requestOptions.data,

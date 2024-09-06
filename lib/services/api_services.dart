@@ -4,11 +4,14 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:recipe_flutter_app/constants.dart';
 import 'package:recipe_flutter_app/interceptors/auth_interceptor.dart';
+import 'package:recipe_flutter_app/main.dart';
 import 'package:recipe_flutter_app/models/recipe.dart';
 import "package:http/http.dart" as http;
 import 'package:recipe_flutter_app/models/user.dart';
+import 'package:recipe_flutter_app/providers/auth_provider.dart';
 
 class ApiService {
   late final Dio dio;
@@ -69,27 +72,19 @@ class ApiService {
     }
   }
 
-  Future<List<Recipe>> getAllRecipes() async {
+  Future<Response> getAllRecipes(
+      {required int limit, required int page}) async {
     try {
-      // http.Response response =
-      //     await http.get(Uri.parse("$baseUrl/recipes"), headers: {
-      //   "Authorization": "Bearer $token",
-      //   "Content-Type": "application/json", // Ensure Content-Type is specified
-      // });
-
-      final response = await dio.get("/recipes");
+      final response = await dio
+          .get("/recipes", queryParameters: {"page": page, "limit": limit});
 
       if (response.statusCode == 200) {
-        final data = response.data;
-
-        final List<dynamic> recipes = data['data'];
-
-        return recipes.map((e) => Recipe.fromJson(e)).toList();
+        return response;
       } else {
         throw Exception("Error while fetching recipes");
       }
     } catch (e) {
-      throw Exception(e);
+      rethrow;
     }
   }
 
@@ -171,10 +166,10 @@ class ApiService {
     }
   }
 
-  Future<void> saveFcmToken(String fcmToken) async {
+  Future<void> saveFcmToken(String fcmToken, String userId) async {
     try {
-      final response =
-          await dio.post("/users/save-fcm-token", data: {"fcmToken": fcmToken});
+      final response = await dio.post("/users/save-fcm-token",
+          data: {"fcmToken": fcmToken, "userId": userId});
     } catch (e) {
       print("Error saving fcm token");
       throw Exception("Error saving Fcm Token: $e");
@@ -188,6 +183,8 @@ class ApiService {
         throw Exception("Error while following user");
       }
       final data = response.data["data"];
+      print("MESSAGE: ${response.data["message"]}");
+
       final user = User.fromJson(data);
       return user;
     } catch (e) {

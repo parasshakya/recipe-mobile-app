@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:recipe_flutter_app/firebase_options.dart';
 import 'package:recipe_flutter_app/providers/auth_provider.dart';
 import 'package:recipe_flutter_app/providers/recipe_provider.dart';
+import 'package:recipe_flutter_app/providers/user_provider.dart';
 import 'package:recipe_flutter_app/screens/home_screen.dart';
 import 'package:recipe_flutter_app/screens/splash_screen.dart';
 import 'package:recipe_flutter_app/services/local_notification_service.dart';
@@ -20,6 +21,7 @@ void main() async {
     providers: [
       ChangeNotifierProvider(create: (context) => AuthProvider()),
       ChangeNotifierProvider(create: (context) => RecipeProvider()),
+      ChangeNotifierProvider(create: (context) => UserProvider()),
     ],
     child: const MainApp(),
   ));

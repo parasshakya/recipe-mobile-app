@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_flutter_app/components/RecipeCard.dart';
 import 'package:recipe_flutter_app/constants.dart';
@@ -19,21 +20,44 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  bool loading = true;
   late AuthProvider authProvider;
   late RecipeProvider recipeProvider;
+  ScrollController scrollController = ScrollController();
+
+  bool fetchMoreLoading = false;
 
   fetchRecipes() async {
-    recipeProvider = Provider.of<RecipeProvider>(context, listen: false);
-    await recipeProvider.fetchAllRecipes();
-    loading = false;
+    fetchMoreLoading = true;
     setState(() {});
+
+    try {
+      recipeProvider = Provider.of<RecipeProvider>(context, listen: false);
+      await recipeProvider.fetchAllRecipes();
+      if (recipeProvider.hasMore) {
+        recipeProvider.currentPage++;
+      }
+    } catch (e) {
+      showSnackbar("Error fetching recipes", context);
+    } finally {
+      setState(() {
+        fetchMoreLoading = false;
+      });
+    }
   }
 
   @override
   void initState() {
     PushNotificationService().init();
     fetchRecipes();
+    scrollController.addListener(() {
+      if (scrollController.position.pixels ==
+              scrollController.position.maxScrollExtent &&
+          !fetchMoreLoading &&
+          recipeProvider.hasMore) {
+        print("FETCHING MORE");
+        fetchRecipes();
+      }
+    });
     super.initState();
   }
 
@@ -52,41 +76,53 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     authProvider = Provider.of<AuthProvider>(context);
+    recipeProvider = Provider.of<RecipeProvider>(context);
     return SafeArea(
-      child: Scaffold(
-          appBar: AppBar(
-            title: Text("Home"),
-            actions: [
-              Text(authProvider.user!.username),
-              const SizedBox(
-                width: 8,
-              ),
-              ElevatedButton(
-                  onPressed: () {
-                    logout();
-                  },
-                  child: const Text("Logout"))
-            ],
-          ),
-          body: loading
-              ? Center(child: const CircularProgressIndicator())
-              : SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      ...recipeProvider.recipes.map((e) => GestureDetector(
+        child: Scaffold(
+            appBar: AppBar(
+              title: Text("Home"),
+              actions: [
+                Text(authProvider.user!.username),
+                const SizedBox(
+                  width: 8,
+                ),
+                ElevatedButton(
+                    onPressed: () {
+                      logout();
+                    },
+                    child: const Text("Logout"))
+              ],
+            ),
+            body: recipeProvider.recipes.isEmpty
+                ? Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : recipeProvider.totalRecipeCount == 0
+                    ? Center(child: Text("no recipes found "))
+                    : ListView.builder(
+                        controller: scrollController,
+                        itemCount: recipeProvider.recipes.length +
+                            (recipeProvider.hasMore ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index == recipeProvider.recipes.length) {
+                            return SpinKitThreeBounce(
+                              color: Colors.red,
+                              size: 40,
+                            );
+                          }
+
+                          final recipe = recipeProvider.recipes[index];
+                          return GestureDetector(
                             onTap: () {
                               Navigator.of(context).push(MaterialPageRoute(
                                   builder: (context) =>
-                                      RecipeDetailScreen(recipe: e)));
+                                      RecipeDetailScreen(recipe: recipe)));
                             },
                             child: RecipeCard(
-                                name: e.name,
-                                imageUrl: e.image,
-                                description: e.description),
-                          ))
-                    ],
-                  ),
-                )),
-    );
+                                name: recipe.name,
+                                imageUrl: recipe.image,
+                                description: recipe.description),
+                          );
+                        })));
   }
 }

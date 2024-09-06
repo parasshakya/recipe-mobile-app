@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_flutter_app/firebase_options.dart';
 import 'package:recipe_flutter_app/main.dart';
+import 'package:recipe_flutter_app/providers/auth_provider.dart';
 import 'package:recipe_flutter_app/providers/recipe_provider.dart';
 import 'package:recipe_flutter_app/screens/recipe_detail_screen.dart';
 import 'package:recipe_flutter_app/services/api_services.dart';
@@ -46,6 +47,9 @@ class PushNotificationService {
   // Define the background message handler
 
   void setupFirebaseMessaging() {
+    final context = navigatorKey.currentState!.context;
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.user!;
     // Register the background message handler
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
@@ -97,19 +101,19 @@ class PushNotificationService {
           builder: (context) => RecipeDetailScreen(recipe: recipe)));
     });
 
-    // FirebaseMessaging.instance.getToken().then((String? token) async {
-    //   print("FCM Token: $token");
-    //   // Send the token to your server to register the device
-    //   if (token != null) {
-    //     await ApiService().sendFcmToken(token);
-    //   }
-    // });
-    // FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
-    //   print(" New FCM Token: $newToken");
+    FirebaseMessaging.instance.getToken().then((String? token) async {
+      print("FCM Token: $token");
+      // Send the token to your server to register the device
+      if (token != null) {
+        await ApiService().saveFcmToken(token, user.id);
+      }
+    });
+    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+      print(" New FCM Token: $newToken");
 
-    //   // Send the new token to your server
-    //   ApiService().sendFcmToken(newToken);
-    // });
+      // Send the new token to your server
+      await ApiService().saveFcmToken(newToken, user.id);
+    });
   }
 
   init() {

@@ -12,10 +12,9 @@ class UserProvider extends ChangeNotifier {
 
   User? get user => _user;
 
-  Future<User?> followUser(String userId) async {
+  Future<void> followUser(String userId) async {
     _user = await ApiService().followUser(userId);
 
     notifyListeners();
-    return _user;
   }
 }

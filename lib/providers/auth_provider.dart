@@ -27,24 +27,15 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> login(String email, String password) async {
     final user = await ApiService().login(email, password);
-    // Fetch and save FCM token after successful login
-    String? fcmToken = await FirebaseMessaging.instance.getToken();
-    if (fcmToken != null) {
-      await ApiService().saveFcmToken(fcmToken);
-    }
-
     _user = user;
+
     notifyListeners();
   }
 
   Future<void> signup(
       String email, String password, XFile image, String username) async {
     final user = await ApiService().signUp(email, password, username, image);
-    // Fetch and save FCM token after successful login
-    String? fcmToken = await FirebaseMessaging.instance.getToken();
-    if (fcmToken != null) {
-      await ApiService().saveFcmToken(fcmToken);
-    }
+
     _user = user;
     notifyListeners();
   }
