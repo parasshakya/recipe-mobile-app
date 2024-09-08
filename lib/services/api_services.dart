@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:recipe_flutter_app/config/config.dart';
 import 'package:recipe_flutter_app/constants.dart';
 import 'package:recipe_flutter_app/interceptors/auth_interceptor.dart';
 import 'package:recipe_flutter_app/main.dart';
@@ -17,7 +18,11 @@ class ApiService {
   late final Dio dio;
 
   ApiService() {
-    dio = Dio(BaseOptions(baseUrl: baseUrl));
+    dio = Dio(BaseOptions(
+      baseUrl: Config.baseUrl,
+      connectTimeout: const Duration(seconds: 10), // 10 seconds
+      receiveTimeout: const Duration(seconds: 15), // 15 seconds
+    ));
     dio.interceptors.add(AuthInterceptor(dio: dio));
   }
 

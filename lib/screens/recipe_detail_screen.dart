@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:recipe_flutter_app/config/config.dart';
 import 'package:recipe_flutter_app/constants.dart';
 import 'package:recipe_flutter_app/models/recipe.dart';
 import 'package:recipe_flutter_app/screens/user_detail_screen.dart';
@@ -17,7 +18,7 @@ class RecipeDetailScreen extends StatelessWidget {
           child: Column(
             children: [
               Image.network(
-                "$baseUrl/uploads/${recipe.image}",
+                "${Config.baseUrl}/uploads/${recipe.image}",
                 fit: BoxFit.cover,
                 width: double.infinity,
                 height: 200,
@@ -36,7 +37,7 @@ class RecipeDetailScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Image.network(
-                    "$baseUrl/uploads/${recipe.user.image}",
+                    "${Config.baseUrl}/uploads/${recipe.user.image}",
                     fit: BoxFit.cover,
                     width: 50,
                     height: 50,

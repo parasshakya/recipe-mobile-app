@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_flutter_app/components/RecipeCard.dart';
-import 'package:recipe_flutter_app/constants.dart';
+import 'package:recipe_flutter_app/utils.dart';
 import 'package:recipe_flutter_app/models/recipe.dart';
 import 'package:recipe_flutter_app/models/user.dart';
 import 'package:recipe_flutter_app/providers/auth_provider.dart';

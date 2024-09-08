@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:recipe_flutter_app/config/config.dart';
 import 'package:recipe_flutter_app/constants.dart';
 
 class RecipeCard extends StatelessWidget {
@@ -22,7 +23,7 @@ class RecipeCard extends StatelessWidget {
         children: <Widget>[
           // Recipe Image
           Image.network(
-            "$baseUrl/uploads/$imageUrl",
+            "${Config.baseUrl}/uploads/$imageUrl",
             fit: BoxFit.cover,
             width: double.infinity,
             height: 200,

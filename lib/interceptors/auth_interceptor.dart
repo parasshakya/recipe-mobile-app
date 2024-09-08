@@ -2,7 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
-import 'package:recipe_flutter_app/constants.dart';
+import 'package:recipe_flutter_app/config/config.dart';
+import 'package:recipe_flutter_app/utils.dart';
 import 'package:recipe_flutter_app/main.dart';
 import 'package:recipe_flutter_app/providers/auth_provider.dart';
 
@@ -29,6 +30,21 @@ class AuthInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
+    // Check if it's a network error
+    if (err.type == DioExceptionType.unknown ||
+        err.type == DioExceptionType.connectionTimeout ||
+        err.type == DioExceptionType.connectionError) {
+      // Handle no internet connection
+      print("No internet connection");
+      ScaffoldMessenger.of(navigatorKey.currentState!.context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'No internet connection. Please check your connection and try again.')),
+      );
+
+      return; // Stop further error handling
+    }
+
     // Check if the error is a 401 Unauthorized error
     if (err.response?.statusCode == 401) {
       // Refresh the token
@@ -58,7 +74,7 @@ class AuthInterceptor extends Interceptor {
 
       // Call the refresh endpoint to get a new token
       var response = await dio.post(
-        "$baseUrl/auth/refresh-token",
+        "${Config.baseUrl}/auth/refresh-token",
         options: Options(
           headers: {
             "Refresh-Token": refreshToken,
