@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
-import 'package:recipe_flutter_app/components/RecipeCard.dart';
+import 'package:recipe_flutter_app/components/recipe_card.dart';
 import 'package:recipe_flutter_app/utils.dart';
 import 'package:recipe_flutter_app/models/recipe.dart';
 import 'package:recipe_flutter_app/models/user.dart';
@@ -23,11 +23,16 @@ class _HomeScreenState extends State<HomeScreen> {
   late AuthProvider authProvider;
   late RecipeProvider recipeProvider;
   ScrollController scrollController = ScrollController();
+  bool loading = true;
 
   bool fetchMoreLoading = false;
 
   fetchRecipes() async {
+    if (fetchMoreLoading) {
+      return;
+    }
     fetchMoreLoading = true;
+
     setState(() {});
 
     try {
@@ -41,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
     } finally {
       setState(() {
         fetchMoreLoading = false;
+        loading = false;
       });
     }
   }
@@ -58,16 +64,16 @@ class _HomeScreenState extends State<HomeScreen> {
         fetchRecipes();
       }
     });
+    print("INITSTATE");
     super.initState();
   }
 
   logout() async {
     try {
       await authProvider.logout();
-      if (mounted) {
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (context) => const LoginScreen()));
-      }
+
+      Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => LoginScreen()));
     } catch (e) {
       showSnackbar(e.toString(), context);
     }
@@ -82,7 +88,8 @@ class _HomeScreenState extends State<HomeScreen> {
             appBar: AppBar(
               title: Text("Home"),
               actions: [
-                Text(authProvider.user!.username),
+                if (authProvider.currentUser != null)
+                  Text(authProvider.currentUser!.username),
                 const SizedBox(
                   width: 8,
                 ),
@@ -93,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: const Text("Logout"))
               ],
             ),
-            body: recipeProvider.recipes.isEmpty
+            body: loading
                 ? Center(
                     child: CircularProgressIndicator(),
                   )

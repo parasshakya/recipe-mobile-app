@@ -6,7 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_flutter_app/config/config.dart';
-import 'package:recipe_flutter_app/constants.dart';
+import 'package:recipe_flutter_app/utils.dart';
 import 'package:recipe_flutter_app/interceptors/auth_interceptor.dart';
 import 'package:recipe_flutter_app/main.dart';
 import 'package:recipe_flutter_app/models/recipe.dart';
@@ -30,10 +30,6 @@ class ApiService {
 
   Future<void> createRecipe(Recipe recipe) async {
     try {
-      // http.Response response = await http.post(Uri.parse("$baseUrl/recipes"),
-      //     headers: {"Content-Type": "application/json"},
-      //     body: recipeJsonString);
-
       final response = await dio.post("/recipes", data: recipe.toJson());
 
       if (response.statusCode == 201) {
@@ -93,6 +89,22 @@ class ApiService {
     }
   }
 
+  Future<List<Recipe>> getRecipesByUser({required String userId}) async {
+    try {
+      final response = await dio.get("/recipes/user/$userId");
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        final recipes = data["data"] as List;
+        return recipes.map((e) => Recipe.fromJson(e)).toList();
+      } else {
+        throw Exception();
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<Recipe> getRecipeById(String id) async {
     try {
       final response = await dio.get("/recipes/$id");
@@ -120,13 +132,6 @@ class ApiService {
     XFile image,
   ) async {
     try {
-      // final userJsonString = jsonEncode(userInfo.toJson());
-
-      // http.Response response = await http.post(
-      //     Uri.parse("$baseUrl/auth/signup"),
-      //     headers: {"Content-Type": "application/json"},
-      //     body: userJsonString);
-
       String fileName = image.path.split('/').last;
       FormData formData = FormData.fromMap({
         "username": username,
@@ -171,10 +176,10 @@ class ApiService {
     }
   }
 
-  Future<void> saveFcmToken(String fcmToken, String userId) async {
+  Future<void> saveFcmToken(String fcmToken) async {
     try {
-      final response = await dio.post("/users/save-fcm-token",
-          data: {"fcmToken": fcmToken, "userId": userId});
+      final response =
+          await dio.post("/users/save-fcm-token", data: {"fcmToken": fcmToken});
     } catch (e) {
       print("Error saving fcm token");
       throw Exception("Error saving Fcm Token: $e");
@@ -198,12 +203,19 @@ class ApiService {
     }
   }
 
-  Future<void> unfollowUser(String userId) async {
+  Future<User> unfollowUser(String userId) async {
     try {
       final response = await dio.post("/users/unfollow/$userId");
+      if (response.statusCode == 200) {
+        final data = response.data;
+        final currentUser = data["data"];
+        return User.fromJson(currentUser);
+      } else {
+        throw Exception();
+      }
     } catch (e) {
       print("Error unfollowing user: $e");
-      throw Exception("Error unfollowing user");
+      rethrow;
     }
   }
 
@@ -221,6 +233,8 @@ class ApiService {
       final refreshToken = data["data"]["refreshToken"];
 
       final userDataString = jsonEncode(userData);
+
+      print(userDataString);
 
       await _secureStorage.write(key: "accessToken", value: accessToken);
       await _secureStorage.write(key: "refreshToken", value: refreshToken);

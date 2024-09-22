@@ -19,6 +19,8 @@ class AuthInterceptor extends Interceptor {
     // Retrieve the token from storage
     String? accessToken = await secureStorage.read(key: "accessToken");
 
+    print("ACCESS TOKEN IS $accessToken");
+
     // Add headers if the token exists
     if (accessToken != null) {
       options.headers["Authorization"] = "Bearer $accessToken";
@@ -55,6 +57,7 @@ class AuthInterceptor extends Interceptor {
         // Update the token in storage and retry the request
         String newToken = newAccessTokenResponse.data["accessToken"];
         await secureStorage.write(key: "accessToken", value: newToken);
+        print("NEW ACCESS TOKEN RECEIVED AFTER REFRESHING $newToken");
 
         // Retry the original request with the updated token
         handler.resolve(await _retry(err.requestOptions, newToken));

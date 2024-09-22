@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:recipe_flutter_app/constants.dart';
+import 'package:provider/provider.dart';
+import 'package:recipe_flutter_app/providers/auth_provider.dart';
+import 'package:recipe_flutter_app/utils.dart';
 import 'package:recipe_flutter_app/screens/home_screen.dart';
 import 'package:recipe_flutter_app/services/api_services.dart';
 
@@ -18,7 +20,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final apiService = ApiService();
+
+  late AuthProvider authProvider;
   XFile? image;
 
   Future<void> _signUp() async {
@@ -32,7 +35,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       String password = _passwordController.text;
 
       try {
-        await apiService.signUp(email, password, name, image!);
+        await authProvider.signup(email, password, image!, name);
       } catch (e) {
         showSnackbar(e.toString(), context);
         return;
@@ -57,6 +60,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    authProvider = Provider.of<AuthProvider>(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text("Sign Up"),

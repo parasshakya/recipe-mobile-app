@@ -2,8 +2,11 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:provider/provider.dart';
 import 'package:recipe_flutter_app/main.dart';
+import 'package:recipe_flutter_app/providers/auth_provider.dart';
 import 'package:recipe_flutter_app/screens/recipe_detail_screen.dart';
+import 'package:recipe_flutter_app/screens/user_detail_screen.dart';
 import 'package:recipe_flutter_app/services/api_services.dart';
 
 class LocalNotificationService {
@@ -44,17 +47,14 @@ class LocalNotificationService {
   }
 
   void onDidReceiveLocalNotification(NotificationResponse? response) async {
-    print("THe payload is: ${response?.payload}");
-
     final payload = jsonDecode(response!.payload!);
 
-    final recipeId = payload["recipeId"];
+    final context = navigatorKey.currentContext;
 
-    print("Data after decode : ${payload}");
-    // display a dialog with the notification details, tap ok to go to another page
-
-    final recipe = await ApiService().getRecipeById(recipeId);
-    Navigator.of(navigatorKey.currentState!.context).push(MaterialPageRoute(
-        builder: (context) => RecipeDetailScreen(recipe: recipe)));
+    if (payload["screen"] == "/userDetail") {
+      final user = await ApiService().getUserById(payload["userId"]);
+      Navigator.of(context!).push(MaterialPageRoute(
+          builder: (context) => UserDetailScreen(user: user!)));
+    }
   }
 }

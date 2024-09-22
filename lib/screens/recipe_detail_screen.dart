@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:recipe_flutter_app/config/config.dart';
-import 'package:recipe_flutter_app/constants.dart';
+import 'package:recipe_flutter_app/utils.dart';
 import 'package:recipe_flutter_app/models/recipe.dart';
 import 'package:recipe_flutter_app/screens/user_detail_screen.dart';
 
@@ -18,7 +18,7 @@ class RecipeDetailScreen extends StatelessWidget {
           child: Column(
             children: [
               Image.network(
-                "${Config.baseUrl}/uploads/${recipe.image}",
+                recipe.image,
                 fit: BoxFit.cover,
                 width: double.infinity,
                 height: 200,
@@ -36,11 +36,11 @@ class RecipeDetailScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.network(
-                    "${Config.baseUrl}/uploads/${recipe.user.image}",
-                    fit: BoxFit.cover,
-                    width: 50,
-                    height: 50,
+                  CircleAvatar(
+                      radius: 25,
+                      backgroundImage: NetworkImage(recipe.user.image)),
+                  SizedBox(
+                    width: 10,
                   ),
                   GestureDetector(
                       onTap: () {
@@ -50,13 +50,19 @@ class RecipeDetailScreen extends StatelessWidget {
                                 builder: (context) =>
                                     UserDetailScreen(user: recipe.user)));
                       },
-                      child: Text(recipe.user.username)),
+                      child: Text(
+                        recipe.user.username,
+                        style: TextStyle(fontSize: 18),
+                      )),
                 ],
               ),
               SizedBox(
-                height: 10,
+                height: 30,
               ),
-              Text(recipe.description),
+              Text(
+                recipe.description,
+                style: TextStyle(fontSize: 20),
+              ),
               SizedBox(
                 height: 10,
               ),

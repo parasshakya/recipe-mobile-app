@@ -7,27 +7,25 @@ import 'package:recipe_flutter_app/screens/login_screen.dart';
 import 'package:recipe_flutter_app/services/api_services.dart';
 
 class AuthProvider extends ChangeNotifier {
-  User? _user;
+  User? _currentUser;
 
-  User? get user => _user;
+  User? get currentUser => _currentUser;
 
   void setUser(User user) {
-    _user = user;
+    _currentUser = user;
     notifyListeners();
   }
 
   Future<void> logout() async {
     await ApiService().logout();
-    _user = null;
-    notifyListeners();
 
-    Navigator.of(navigatorKey.currentState!.context).pushReplacement(
-        MaterialPageRoute(builder: (context) => LoginScreen()));
+    _currentUser = null;
+    notifyListeners();
   }
 
   Future<void> login(String email, String password) async {
     final user = await ApiService().login(email, password);
-    _user = user;
+    _currentUser = user;
 
     notifyListeners();
   }
@@ -36,13 +34,13 @@ class AuthProvider extends ChangeNotifier {
       String email, String password, XFile image, String username) async {
     final user = await ApiService().signUp(email, password, username, image);
 
-    _user = user;
+    _currentUser = user;
     notifyListeners();
   }
 
   Future<User?> getUserById(String userId) async {
-    _user = await ApiService().getUserById(userId);
+    _currentUser = await ApiService().getUserById(userId);
     notifyListeners();
-    return _user;
+    return _currentUser;
   }
 }

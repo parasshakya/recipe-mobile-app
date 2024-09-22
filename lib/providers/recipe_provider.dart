@@ -40,4 +40,6 @@ class RecipeProvider extends ChangeNotifier {
     final recipe = await ApiService().getRecipeById(recipeId);
     return recipe;
   }
+
+  getRecipesByUser() async {}
 }
