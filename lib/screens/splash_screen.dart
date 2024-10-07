@@ -32,7 +32,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (userData != null && userData.isNotEmpty) {
       final user = User.fromJson(jsonDecode(userData));
-      authProvider.setUser(user);
+      await authProvider.getUserById(user.id);
       return true;
     } else {
       return false;

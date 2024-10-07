@@ -24,6 +24,9 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 class PushNotificationService {
   final FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
+  final authProvider = Provider.of<AuthProvider>(
+      navigatorKey.currentState!.context,
+      listen: false);
 
   //for iOS, we have to request permission
   void requestPermission() async {
@@ -45,12 +48,21 @@ class PushNotificationService {
 
   handleMessage(RemoteMessage? message) async {
     if (message != null) {
-      final screen = message.data["screen"];
+      await authProvider.getUserById(authProvider.currentUser!.id);
 
-      if (screen == "/userDetail") {
-        final user = await ApiService().getUserById(message.data["userId"]);
+      if (message.data["type"] == "follow") {
+        final userId = message.data["userId"];
+
         Navigator.of(navigatorKey.currentState!.context).push(MaterialPageRoute(
-            builder: (context) => UserDetailScreen(user: user!)));
+            builder: (context) => UserDetailScreen(userId: userId!)));
+      }
+
+      if (message.data["type"] == "comment" || message.data["type"] == "like") {
+        final recipeId = message.data["recipeId"];
+        Navigator.of(navigatorKey.currentState!.context).push(MaterialPageRoute(
+            builder: (context) => RecipeDetailScreen(
+                  recipeId: recipeId,
+                )));
       }
     }
   }
@@ -63,8 +75,10 @@ class PushNotificationService {
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
     //this is called when app is in foreground state.
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       if (message.notification != null) {
+        await authProvider.getUserById(authProvider.currentUser!.id);
+
         LocalNotificationService().showNotification(
             id: 0,
             title: message.notification!.title!,

@@ -51,10 +51,17 @@ class LocalNotificationService {
 
     final context = navigatorKey.currentContext;
 
-    if (payload["screen"] == "/userDetail") {
-      final user = await ApiService().getUserById(payload["userId"]);
+    if (payload["type"] == "follow") {
+      final userId = payload["userId"];
       Navigator.of(context!).push(MaterialPageRoute(
-          builder: (context) => UserDetailScreen(user: user!)));
+          builder: (context) => UserDetailScreen(userId: userId!)));
+    }
+    if (payload["type"] == "comment" || payload["type"] == "like") {
+      final recipeId = payload["recipeId"];
+      Navigator.of(context!).push(MaterialPageRoute(
+          builder: (context) => RecipeDetailScreen(
+                recipeId: recipeId,
+              )));
     }
   }
 }

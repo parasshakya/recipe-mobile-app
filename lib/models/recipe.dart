@@ -12,7 +12,7 @@ class Recipe {
   final List<String> ingredients; // List of ingredients
   final String image;
   final List<Comment> comments;
-  final List<User> likes;
+  final List<String> likes;
   final int preparingTimeInHours;
   final int preparingTimeInMinutes;
   final int preparingTimeInSeconds;
@@ -55,8 +55,7 @@ class Recipe {
       comments: (json['comments'] as List)
           .map((comment) => Comment.fromJson(comment))
           .toList(),
-      likes:
-          (json['likes'] as List).map((like) => User.fromJson(like)).toList(),
+      likes: List<String>.from(json["likes"]),
       preparingTimeInHours: json['preparingTimeInHours'] ?? 0,
       preparingTimeInMinutes: json['preparingTimeInMinutes'] ?? 0,
       preparingTimeInSeconds: json['preparingTimeInSeconds'] ?? 0,
@@ -93,12 +92,12 @@ class Recipe {
 
 // Comment model
 class Comment {
-  final User user;
+  final String userId;
   final String text;
   final DateTime createdAt;
 
   Comment({
-    required this.user,
+    required this.userId,
     required this.text,
     required this.createdAt,
   });
@@ -106,7 +105,7 @@ class Comment {
   // Factory constructor to create a Comment object from JSON
   factory Comment.fromJson(Map<String, dynamic> json) {
     return Comment(
-      user: User.fromJson(json['user']),
+      userId: json["userId"],
       text: json['text'],
       createdAt: DateTime.parse(json['createdAt']),
     );
@@ -115,7 +114,7 @@ class Comment {
   // Method to convert a Comment object to JSON
   Map<String, dynamic> toJson() {
     return {
-      'user': user.toJson(),
+      'userId': userId,
       'text': text,
       'createdAt': createdAt.toIso8601String(),
     };

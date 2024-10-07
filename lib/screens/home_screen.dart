@@ -1,7 +1,11 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_flutter_app/components/recipe_card.dart';
+import 'package:recipe_flutter_app/models/notification.dart';
+import 'package:recipe_flutter_app/screens/notification_screen.dart';
 import 'package:recipe_flutter_app/utils.dart';
 import 'package:recipe_flutter_app/models/recipe.dart';
 import 'package:recipe_flutter_app/models/user.dart';
@@ -22,8 +26,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late AuthProvider authProvider;
   late RecipeProvider recipeProvider;
+
   ScrollController scrollController = ScrollController();
   bool loading = true;
+  // List<UserNotification> notifications = [];
 
   bool fetchMoreLoading = false;
 
@@ -55,6 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     PushNotificationService().init();
     fetchRecipes();
+    // fetchNotifications();
     scrollController.addListener(() {
       if (scrollController.position.pixels ==
               scrollController.position.maxScrollExtent &&
@@ -68,9 +75,16 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
   }
 
+  // fetchNotifications() async {
+  //   notifications = await ApiService().fetchNotifications();
+  //   setState(() {});
+  // }
+
   logout() async {
     try {
       await authProvider.logout();
+
+      if (!mounted) return;
 
       Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => LoginScreen()));
@@ -93,11 +107,36 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(
                   width: 8,
                 ),
+                Stack(children: [
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: Container(
+                      child: Text(
+                          "${authProvider.currentUser?.notifications!.length ?? 0}"),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => NotificationScreen(
+                              notifications:
+                                  authProvider.currentUser!.notifications!)));
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Icon(Icons.notifications),
+                    ),
+                  )
+                ]),
+                const SizedBox(
+                  width: 8,
+                ),
                 ElevatedButton(
                     onPressed: () {
                       logout();
                     },
-                    child: const Text("Logout"))
+                    child: const Text("Logout")),
               ],
             ),
             body: loading
@@ -123,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             onTap: () {
                               Navigator.of(context).push(MaterialPageRoute(
                                   builder: (context) =>
-                                      RecipeDetailScreen(recipe: recipe)));
+                                      RecipeDetailScreen(recipeId: recipe.id)));
                             },
                             child: RecipeCard(
                                 name: recipe.name,

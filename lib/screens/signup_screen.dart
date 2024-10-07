@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_flutter_app/providers/auth_provider.dart';
+import 'package:recipe_flutter_app/screens/otp_verification_screen.dart';
 import 'package:recipe_flutter_app/utils.dart';
 import 'package:recipe_flutter_app/screens/home_screen.dart';
 import 'package:recipe_flutter_app/services/api_services.dart';
@@ -35,7 +36,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
       String password = _passwordController.text;
 
       try {
-        await authProvider.signup(email, password, image!, name);
+        final response =
+            await ApiService().fetchOTP(email, password, name, image!);
+        if (response.statusCode == 200) {
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => OTPVerificationScreen(email: email)));
+        }
       } catch (e) {
         showSnackbar(e.toString(), context);
         return;
@@ -47,8 +53,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
         SnackBar(content: Text('Signed up as $name with email: $email')),
       );
 
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => HomeScreen()));
+      // Navigator.of(context)
+      //     .push(MaterialPageRoute(builder: (context) => HomeScreen()));
     }
   }
 

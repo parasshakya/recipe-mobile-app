@@ -10,8 +10,8 @@ import 'package:recipe_flutter_app/models/user.dart';
 import 'package:recipe_flutter_app/providers/auth_provider.dart';
 
 class UserDetailScreen extends StatefulWidget {
-  final User user;
-  const UserDetailScreen({super.key, required this.user});
+  final String userId;
+  const UserDetailScreen({super.key, required this.userId});
 
   @override
   State<UserDetailScreen> createState() => _UserDetailScreenState();
@@ -23,6 +23,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
   bool _loading = true;
   List<Recipe> recipes = [];
   bool following = false;
+  late AuthProvider authProvider;
 
   @override
   void initState() {
@@ -36,8 +37,6 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
       await fetchCurrentUser();
       await getRecipesByUser();
       checkFollowingStatus();
-      print("CURRENT USER IS ${currentUser!.username}");
-      print("USER PROFILE IS ${_user!.username}");
     } catch (e) {
       showSnackbar("Something went wrong", context);
     } finally {
@@ -59,7 +58,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
 
   Future<void> fetchUser() async {
     try {
-      _user = await ApiService().getUserById(widget.user.id);
+      _user = await ApiService().getUserById(widget.userId);
     } catch (e) {
       showSnackbar(e.toString(), context);
     }
@@ -67,14 +66,14 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
 
   Future<void> getRecipesByUser() async {
     try {
-      recipes = await ApiService().getRecipesByUser(userId: widget.user.id);
+      recipes = await ApiService().getRecipesByUser(userId: widget.userId);
     } catch (e) {
       showSnackbar("Failed to fetch recipes", context);
     }
   }
 
   void checkFollowingStatus() {
-    if (currentUser?.following.contains(widget.user.id) == true) {
+    if (currentUser?.following.contains(widget.userId) == true) {
       setState(() {
         following = true;
       });
@@ -87,7 +86,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
 
   Future<void> followUser() async {
     try {
-      await ApiService().followUser(widget.user.id);
+      await authProvider.followUser(widget.userId);
       await fetchData();
     } catch (e) {
       showSnackbar(e.toString(), context);
@@ -96,7 +95,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
 
   Future<void> unfollowUser() async {
     try {
-      await ApiService().unfollowUser(widget.user.id);
+      await authProvider.unfollowUser(widget.userId);
       await fetchData();
     } catch (e) {
       showSnackbar(e.toString(), context);
@@ -105,76 +104,82 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    authProvider = Provider.of<AuthProvider>(context);
     return Scaffold(
       appBar: AppBar(),
       body: Center(
         child: _loading
             ? CircularProgressIndicator()
-            : SingleChildScrollView(
-                child: Column(
-                  children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundImage: _user?.image != null
-                          ? NetworkImage(_user!.image)
-                          : null,
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      _user?.username ?? "Loading...",
-                      style: TextStyle(fontSize: 24),
-                    ),
-                    SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Followers: ${_user?.followers.length ?? 0}",
-                          style: TextStyle(fontSize: 20),
-                        ),
-                        SizedBox(width: 20),
-                        Text(
-                          "Following: ${_user?.following.length ?? 0}",
-                          style: TextStyle(fontSize: 20),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 20),
-                    ElevatedButton.icon(
-                      onPressed: following ? unfollowUser : followUser,
-                      icon: Icon(following ? Icons.check : Icons.add),
-                      label: Text(following ? "Following" : "Follow"),
-                    ),
-                    SizedBox(height: 20),
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
+            : RefreshIndicator(
+                onRefresh: () async {
+                  fetchData();
+                },
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundImage: _user?.image != null
+                            ? NetworkImage(_user!.image)
+                            : null,
                       ),
-                      itemCount: recipes.length,
-                      itemBuilder: (context, index) {
-                        final recipe = recipes[index];
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    RecipeDetailScreen(recipe: recipe),
-                              ),
-                            );
-                          },
-                          child: RecipeCardUserDetail(
-                            name: recipe.name,
-                            imageUrl: recipe.image,
-                            description: recipe.description,
+                      SizedBox(height: 10),
+                      Text(
+                        _user?.username ?? "Loading...",
+                        style: TextStyle(fontSize: 24),
+                      ),
+                      SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Followers: ${_user?.followers.length ?? 0}",
+                            style: TextStyle(fontSize: 20),
                           ),
-                        );
-                      },
-                    ),
-                  ],
+                          SizedBox(width: 20),
+                          Text(
+                            "Following: ${_user?.following.length ?? 0}",
+                            style: TextStyle(fontSize: 20),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 20),
+                      ElevatedButton.icon(
+                        onPressed: following ? unfollowUser : followUser,
+                        icon: Icon(following ? Icons.check : Icons.add),
+                        label: Text(following ? "Following" : "Follow"),
+                      ),
+                      SizedBox(height: 20),
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                        ),
+                        itemCount: recipes.length,
+                        itemBuilder: (context, index) {
+                          final recipe = recipes[index];
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      RecipeDetailScreen(recipeId: recipe.id),
+                                ),
+                              );
+                            },
+                            child: RecipeCardUserDetail(
+                              name: recipe.name,
+                              imageUrl: recipe.image,
+                              description: recipe.description,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
       ),

@@ -6,6 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_flutter_app/config/config.dart';
+import 'package:recipe_flutter_app/models/notification.dart';
 import 'package:recipe_flutter_app/utils.dart';
 import 'package:recipe_flutter_app/interceptors/auth_interceptor.dart';
 import 'package:recipe_flutter_app/main.dart';
@@ -16,6 +17,9 @@ import 'package:recipe_flutter_app/providers/auth_provider.dart';
 
 class ApiService {
   late final Dio dio;
+  final authProvider = Provider.of<AuthProvider>(
+      navigatorKey.currentState!.context,
+      listen: false);
 
   ApiService() {
     dio = Dio(BaseOptions(
@@ -23,7 +27,7 @@ class ApiService {
       connectTimeout: const Duration(seconds: 10), // 10 seconds
       receiveTimeout: const Duration(seconds: 15), // 15 seconds
     ));
-    dio.interceptors.add(AuthInterceptor(dio: dio));
+    dio.interceptors.add(AppInterceptor(dio: dio));
   }
 
   final _secureStorage = const FlutterSecureStorage();
@@ -54,22 +58,58 @@ class ApiService {
     try {
       _secureStorage.delete(key: "accessToken");
       _secureStorage.delete(key: "refreshToken");
+      _secureStorage.delete(key: "fcmToken");
     } catch (e) {
       throw Exception("Failed to clear tokens from local storage: $e");
+    }
+  }
+
+  Future<Recipe> postLike(String recipeId) async {
+    try {
+      final response = await dio.post("/recipes/like/$recipeId");
+      if (response.statusCode != 200) {
+        throw Exception("Failed to post like");
+      }
+      final data = response.data;
+      final recipe = Recipe.fromJson(data["data"]);
+      return recipe;
+    } catch (e) {
+      print("Error posting like: $e");
+      rethrow;
     }
   }
 
   Future<void> logout() async {
     try {
       final refreshToken = await _secureStorage.read(key: "refreshToken");
-      final response = await dio.post("/auth/logout",
-          options: Options(headers: {"Refresh-Token": refreshToken}));
+      final fcmToken = await _secureStorage.read(key: "fcmToken");
+      final response = await dio.post("/auth/logout", data: {
+        "refreshToken": refreshToken,
+        "fcmToken": fcmToken,
+        "userId": authProvider.currentUser!.id
+      });
       if (response.statusCode == 200) {
         await clearUserData();
         await clearTokens();
       }
     } catch (e) {
       throw Exception("Failed to logout: $e");
+    }
+  }
+
+  Future<List<UserNotification>> fetchNotifications() async {
+    try {
+      final response =
+          await dio.get("/notifications/${authProvider.currentUser!.id}");
+
+      if (response.statusCode != 200) throw ("Error fetching notifications");
+
+      print(response.data);
+      final data = response.data["data"] as List;
+      return data.map((e) => UserNotification.fromJson(e)).toList();
+    } catch (e) {
+      print("Error fetching notifications $e");
+      rethrow;
     }
   }
 
@@ -125,7 +165,7 @@ class ApiService {
     }
   }
 
-  Future<User> signUp(
+  Future<Response> fetchOTP(
     String email,
     String password,
     String username,
@@ -153,8 +193,44 @@ class ApiService {
         ),
       );
 
-      if (response.statusCode != 201) {
-        throw Exception("Failed to Sign up. Please try again.");
+      if (response.statusCode != 200) {
+        throw Exception(response.data["message"]);
+      }
+
+      return response;
+    } catch (e) {
+      print("Error during signup: $e");
+      rethrow;
+    }
+  }
+
+  Future<Response> resendOTP(String email) async {
+    try {
+      final response = await dio.post(
+        "/otp/resendOTP",
+        data: {"email": email},
+      );
+
+      return response;
+    } catch (e) {
+      print("Error during refetching otp: $e");
+
+      throw Exception(
+          "An error occurred during otp refetch. Please try again.");
+    }
+  }
+
+  Future<User> verifyOTP(String email, String otp) async {
+    try {
+      final response = await dio.post(
+        "/otp/verifyOTP",
+        data: {"email": email, "otp": otp},
+      );
+
+      print("RESPONSE FROM VERIFYOTP IS: $response");
+
+      if (response.statusCode != 200) {
+        throw Exception("Error verifying user");
       }
 
       final data = response.data;
@@ -180,6 +256,7 @@ class ApiService {
     try {
       final response =
           await dio.post("/users/save-fcm-token", data: {"fcmToken": fcmToken});
+      await _secureStorage.write(key: "fcmToken", value: fcmToken);
     } catch (e) {
       print("Error saving fcm token");
       throw Exception("Error saving Fcm Token: $e");
@@ -200,6 +277,22 @@ class ApiService {
     } catch (e) {
       print("Error while following user: $e");
       throw Exception("Error while following user");
+    }
+  }
+
+  Future<Recipe> postComment(String recipeId, String text) async {
+    try {
+      final response =
+          await dio.post("/recipes/comment/$recipeId", data: {"text": text});
+      print("RESPONSE STATUS: ${response.statusCode}");
+      if (response.statusCode != 200) {
+        throw Exception("Error while commenting");
+      }
+      final data = response.data;
+      return Recipe.fromJson(data["data"]);
+    } catch (e) {
+      print("Error while commenting");
+      rethrow;
     }
   }
 

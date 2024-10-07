@@ -11,7 +11,7 @@ class AuthProvider extends ChangeNotifier {
 
   User? get currentUser => _currentUser;
 
-  void setUser(User user) {
+  void setUser(User? user) {
     _currentUser = user;
     notifyListeners();
   }
@@ -30,9 +30,8 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> signup(
-      String email, String password, XFile image, String username) async {
-    final user = await ApiService().signUp(email, password, username, image);
+  Future<void> signup(String email, String otp) async {
+    final user = await ApiService().verifyOTP(email, otp);
 
     _currentUser = user;
     notifyListeners();
@@ -42,5 +41,15 @@ class AuthProvider extends ChangeNotifier {
     _currentUser = await ApiService().getUserById(userId);
     notifyListeners();
     return _currentUser;
+  }
+
+  Future followUser(String userId) async {
+    _currentUser = await ApiService().followUser(userId);
+    notifyListeners();
+  }
+
+  Future unfollowUser(String userId) async {
+    _currentUser = await ApiService().unfollowUser(userId);
+    notifyListeners();
   }
 }
