@@ -65,7 +65,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
     }
   }
 
-  refetchOTP() async {
+  resendOTP() async {
     try {
       await ApiService().resendOTP(widget.email);
       startTimer();
@@ -102,7 +102,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
               onPressed: isResendButtonDisabled
                   ? null
                   : () {
-                      refetchOTP();
+                      resendOTP();
                     },
               child: Text(
                 "Resend OTP",

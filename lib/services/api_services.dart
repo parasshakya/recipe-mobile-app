@@ -6,9 +6,12 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_flutter_app/config/config.dart';
+import 'package:recipe_flutter_app/models/chat_message.dart';
+import 'package:recipe_flutter_app/models/chat_room.dart';
 import 'package:recipe_flutter_app/models/notification.dart';
+import 'package:recipe_flutter_app/screens/login_screen.dart';
 import 'package:recipe_flutter_app/utils.dart';
-import 'package:recipe_flutter_app/interceptors/auth_interceptor.dart';
+import 'package:recipe_flutter_app/interceptors/app_interceptor.dart';
 import 'package:recipe_flutter_app/main.dart';
 import 'package:recipe_flutter_app/models/recipe.dart';
 import "package:http/http.dart" as http;
@@ -46,6 +49,27 @@ class ApiService {
     }
   }
 
+  Future<List<ChatRoom>> getMyChatRooms() async {
+    try {
+      final response = await dio.get("/chatRooms");
+      final data = response.data;
+      print(data);
+      final chatRooms = data['chatRooms'] as List;
+
+      return chatRooms.map((e) => ChatRoom.fromJson(e)).toList();
+    } catch (e) {
+      print("Error while fetching chatRooms");
+      throw Exception("Failed to load chatRooms");
+    }
+  }
+
+  Future<List<ChatMessage>> getMessagesFromChatRoomId(String chatroomId) async {
+    final response = await dio.get("//chatMessages/${chatroomId}");
+    final data = response.data;
+    final messages = data["messages"] as List;
+    return messages.map((e) => ChatMessage.fromJson(e)).toList();
+  }
+
   Future<void> clearUserData() async {
     try {
       _secureStorage.delete(key: "userData");
@@ -81,19 +105,32 @@ class ApiService {
 
   Future<void> logout() async {
     try {
+      final dio = Dio();
       final refreshToken = await _secureStorage.read(key: "refreshToken");
       final fcmToken = await _secureStorage.read(key: "fcmToken");
-      final response = await dio.post("/auth/logout", data: {
+      final response = await dio.post("${Config.baseUrl}/auth/logout", data: {
         "refreshToken": refreshToken,
         "fcmToken": fcmToken,
-        "userId": authProvider.currentUser!.id
       });
       if (response.statusCode == 200) {
         await clearUserData();
         await clearTokens();
+        Navigator.of(navigatorKey.currentState!.context).pushReplacement(
+            MaterialPageRoute(builder: (context) => LoginScreen()));
       }
-    } catch (e) {
-      throw Exception("Failed to logout: $e");
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        // Token expired or invalid, clear stored tokens and navigate to login
+
+        await clearUserData();
+        await clearTokens();
+
+        Navigator.of(navigatorKey.currentState!.context).pushReplacement(
+            MaterialPageRoute(builder: (context) => LoginScreen()));
+      } else {
+        print("Error during logout: ${e.message}");
+        throw Exception("Error during logout");
+      }
     }
   }
 
@@ -339,7 +376,7 @@ class ApiService {
     }
   }
 
-  Future<User?> getUserById(String userId) async {
+  Future<User> getUserById(String userId) async {
     try {
       final response = await dio.get("/users/$userId");
       if (response.statusCode == 200) {
@@ -352,6 +389,24 @@ class ApiService {
     } catch (e) {
       print("Error while fetching user: $e");
       throw Exception("Error while fetching user");
+    }
+  }
+
+  Future<List<ChatMessage>> getMessages(
+      String senderId, String receiverId) async {
+    try {
+      final response = await dio.get("/chatMessages",
+          queryParameters: {"senderId": senderId, "recipientId": receiverId});
+
+      if (response.statusCode != 200) {
+        throw Exception("error getting messages");
+      }
+
+      final data = response.data;
+      final messages = data["messages"] as List;
+      return messages.map((e) => ChatMessage.fromJson(e)).toList();
+    } catch (e) {
+      rethrow;
     }
   }
 }

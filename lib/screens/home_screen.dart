@@ -5,6 +5,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_flutter_app/components/recipe_card.dart';
 import 'package:recipe_flutter_app/models/notification.dart';
+import 'package:recipe_flutter_app/screens/chat_room_screen.dart';
 import 'package:recipe_flutter_app/screens/notification_screen.dart';
 import 'package:recipe_flutter_app/utils.dart';
 import 'package:recipe_flutter_app/models/recipe.dart';
@@ -83,11 +84,6 @@ class _HomeScreenState extends State<HomeScreen> {
   logout() async {
     try {
       await authProvider.logout();
-
-      if (!mounted) return;
-
-      Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => LoginScreen()));
     } catch (e) {
       showSnackbar(e.toString(), context);
     }
@@ -99,76 +95,84 @@ class _HomeScreenState extends State<HomeScreen> {
     recipeProvider = Provider.of<RecipeProvider>(context);
     return SafeArea(
         child: Scaffold(
-            appBar: AppBar(
-              title: Text("Home"),
-              actions: [
-                if (authProvider.currentUser != null)
-                  Text(authProvider.currentUser!.username),
-                const SizedBox(
-                  width: 8,
-                ),
-                Stack(children: [
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: Container(
-                      child: Text(
-                          "${authProvider.currentUser?.notifications!.length ?? 0}"),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => NotificationScreen(
-                              notifications:
-                                  authProvider.currentUser!.notifications!)));
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: Icon(Icons.notifications),
-                    ),
-                  )
-                ]),
-                const SizedBox(
-                  width: 8,
-                ),
-                ElevatedButton(
-                    onPressed: () {
-                      logout();
-                    },
-                    child: const Text("Logout")),
-              ],
+      appBar: AppBar(
+        title: Text("Home"),
+        actions: [
+          if (authProvider.currentUser != null)
+            Text(authProvider.currentUser!.username),
+          const SizedBox(
+            width: 8,
+          ),
+          Stack(children: [
+            Positioned(
+              top: 0,
+              right: 0,
+              child: Container(
+                child: Text(
+                    "${authProvider.currentUser?.notifications!.length ?? 0}"),
+              ),
             ),
-            body: loading
-                ? Center(
-                    child: CircularProgressIndicator(),
-                  )
-                : recipeProvider.totalRecipeCount == 0
-                    ? Center(child: Text("no recipes found "))
-                    : ListView.builder(
-                        controller: scrollController,
-                        itemCount: recipeProvider.recipes.length +
-                            (recipeProvider.hasMore ? 1 : 0),
-                        itemBuilder: (context, index) {
-                          if (index == recipeProvider.recipes.length) {
-                            return SpinKitThreeBounce(
-                              color: Colors.red,
-                              size: 40,
-                            );
-                          }
+            GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => NotificationScreen(
+                        notifications:
+                            authProvider.currentUser!.notifications!)));
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Icon(Icons.notifications),
+              ),
+            )
+          ]),
+          const SizedBox(
+            width: 8,
+          ),
+          ElevatedButton(
+              onPressed: () {
+                logout();
+              },
+              child: const Text("Logout")),
+        ],
+      ),
+      body: loading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : recipeProvider.totalRecipeCount == 0
+              ? Center(child: Text("no recipes found "))
+              : ListView.builder(
+                  controller: scrollController,
+                  itemCount: recipeProvider.recipes.length +
+                      (recipeProvider.hasMore ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index == recipeProvider.recipes.length) {
+                      return SpinKitThreeBounce(
+                        color: Colors.red,
+                        size: 40,
+                      );
+                    }
 
-                          final recipe = recipeProvider.recipes[index];
-                          return GestureDetector(
-                            onTap: () {
-                              Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) =>
-                                      RecipeDetailScreen(recipeId: recipe.id)));
-                            },
-                            child: RecipeCard(
-                                name: recipe.name,
-                                imageUrl: recipe.image,
-                                description: recipe.description),
-                          );
-                        })));
+                    final recipe = recipeProvider.recipes[index];
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) =>
+                                RecipeDetailScreen(recipeId: recipe.id)));
+                      },
+                      child: RecipeCard(
+                          name: recipe.name,
+                          imageUrl: recipe.image,
+                          description: recipe.description),
+                    );
+                  }),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context)
+              .push(MaterialPageRoute(builder: (context) => ChatRoomScreen()));
+        },
+        child: Icon(Icons.message),
+      ),
+    ));
   }
 }

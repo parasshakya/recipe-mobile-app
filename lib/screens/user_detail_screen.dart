@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:recipe_flutter_app/components/recipe_card_user_detail.dart';
 import 'package:recipe_flutter_app/models/recipe.dart';
 import 'package:recipe_flutter_app/providers/recipe_provider.dart';
+import 'package:recipe_flutter_app/screens/private_chat_screen.dart';
 import 'package:recipe_flutter_app/screens/recipe_detail_screen.dart';
 import 'package:recipe_flutter_app/services/api_services.dart';
 import 'package:recipe_flutter_app/utils.dart';
@@ -144,10 +145,26 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                         ],
                       ),
                       SizedBox(height: 20),
-                      ElevatedButton.icon(
-                        onPressed: following ? unfollowUser : followUser,
-                        icon: Icon(following ? Icons.check : Icons.add),
-                        label: Text(following ? "Following" : "Follow"),
+                      Row(
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: following ? unfollowUser : followUser,
+                            icon: Icon(following ? Icons.check : Icons.add),
+                            label: Text(following ? "Following" : "Follow"),
+                          ),
+                          SizedBox(
+                            width: 20,
+                          ),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) => PrivateChatScreen(
+                                      receiverUserId: widget.userId)));
+                            },
+                            icon: Icon(Icons.message),
+                            label: Text("message"),
+                          ),
+                        ],
                       ),
                       SizedBox(height: 20),
                       GridView.builder(

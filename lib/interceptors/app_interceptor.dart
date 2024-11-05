@@ -112,11 +112,10 @@ class AppInterceptor extends Interceptor {
       print("REFRESH TOKEN SENT FROM APP: $refreshToken");
 
       // Call the refresh endpoint to get a new token
-      var response = await dio.post("${Config.baseUrl}/auth/refresh-token",
-          data: {
-            "refreshToken": refreshToken,
-            "userId": authProvider.currentUser!.id
-          });
+      var response =
+          await dio.post("${Config.baseUrl}/auth/refresh-token", data: {
+        "refreshToken": refreshToken,
+      });
 
       // Return the response if successful
       return response;
