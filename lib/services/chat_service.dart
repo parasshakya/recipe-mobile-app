@@ -1,8 +1,14 @@
 import 'package:recipe_flutter_app/config/config.dart';
 import 'package:recipe_flutter_app/models/chat_message.dart';
+import 'package:recipe_flutter_app/models/chat_room.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class ChatService {
+  static final ChatService _instance = ChatService._internal();
+  factory ChatService() => _instance;
+
+  ChatService._internal();
+
   late IO.Socket socket;
 
   // Method to initialize the socket connection
@@ -11,7 +17,7 @@ class ChatService {
     socket = IO.io('http://10.0.2.2:3000', <String, dynamic>{
       'transports': ['websocket'],
       'query': {'userId': userId},
-      'autoConnect': true,
+      'autoConnect': false,
     });
 
     // Set up event listeners
@@ -55,10 +61,18 @@ class ChatService {
     });
   }
 
-  void onError(Function(String error) onError) async {
+  void onError(Function(String error) onError) {
     socket.on("error", (data) {
       final errorMessage = data["message"];
       onError(errorMessage);
+    });
+  }
+
+  void onChatRoomUpdate(Function(ChatRoom chatRoom) onChatRoomUpdate) {
+    print(" RECEIVED CHATROOM UDPATE");
+    socket.on("chatRoom_update", (data) {
+      final chatRoom = ChatRoom.fromJson(data["chatRoom"]);
+      onChatRoomUpdate(chatRoom);
     });
   }
 

@@ -7,6 +7,7 @@ import 'package:recipe_flutter_app/components/recipe_card.dart';
 import 'package:recipe_flutter_app/models/notification.dart';
 import 'package:recipe_flutter_app/screens/chat_room_screen.dart';
 import 'package:recipe_flutter_app/screens/notification_screen.dart';
+import 'package:recipe_flutter_app/services/chat_service.dart';
 import 'package:recipe_flutter_app/utils.dart';
 import 'package:recipe_flutter_app/models/recipe.dart';
 import 'package:recipe_flutter_app/models/user.dart';
@@ -27,6 +28,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late AuthProvider authProvider;
   late RecipeProvider recipeProvider;
+  final chatService = ChatService();
 
   ScrollController scrollController = ScrollController();
   bool loading = true;
@@ -58,9 +60,21 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  initializeSocket() {
+    final currentUserId =
+        Provider.of<AuthProvider>(context, listen: false).currentUser!.id;
+    chatService.initializeSocket(currentUserId);
+    chatService.connectSocket();
+
+    chatService.onError((error) {
+      showSnackbar(error, context);
+    });
+  }
+
   @override
   void initState() {
     PushNotificationService().init();
+    initializeSocket();
     fetchRecipes();
     // fetchNotifications();
     scrollController.addListener(() {

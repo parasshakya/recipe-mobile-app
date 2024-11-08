@@ -25,9 +25,17 @@ class _ChatScreenState extends State<ChatScreen> {
   ScrollController scrollController = ScrollController();
   bool loading = true;
 
+  // @override
+  // void dispose() {
+  //   chatService.disconnectSocket();
+  //   // TODO: implement dispose
+  //   super.dispose();
+  // }
+
   @override
   void initState() {
     initialize();
+
     super.initState();
   }
 
@@ -37,46 +45,46 @@ class _ChatScreenState extends State<ChatScreen> {
 
     await getMessages();
     loading = false;
+
     setState(() {});
-    scrollToBottom();
+
+    // Ensure the scrollToBottom is called after the widget tree is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      scrollToBottom();
+    });
   }
 
   scrollToBottom() {
     if (scrollController.hasClients) {
-      scrollController.animateTo(
-        scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
+      scrollController.jumpTo(scrollController.position.maxScrollExtent);
     }
   }
 
   setupSocket() {
-    final currentUserId =
-        Provider.of<AuthProvider>(context, listen: false).currentUser!.id;
-
-    chatService.initializeSocket(currentUserId);
-    chatService.connectSocket();
-
-    chatService.onError((error) {
-      showSnackbar(error, context);
-    });
-
     chatService.onNewMessage((newMessage) {
-      setState(() {
-        messages.add(newMessage);
+      if (mounted) {
+        setState(() {
+          messages.add(newMessage);
+        });
+      }
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        scrollToBottom();
       });
-      scrollToBottom();
     });
 
     chatService.onMessageSent((message, tempId) {
-      setState(() {
-        int index = messages.indexWhere((msg) => msg.id == tempId);
-        if (index != -1) {
-          messages[index] = message;
-        }
+      if (mounted) {
+        setState(() {
+          int index = messages.indexWhere((msg) => msg.id == tempId);
+          if (index != -1) {
+            messages[index] = message;
+          }
+        });
+      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        scrollToBottom();
       });
-      scrollToBottom();
     });
   }
 
@@ -113,10 +121,11 @@ class _ChatScreenState extends State<ChatScreen> {
         status: MessageStatus.pending,
       );
 
-      setState(() {
-        messages.add(newMessage);
-      });
-
+      if (mounted) {
+        setState(() {
+          messages.add(newMessage);
+        });
+      }
       chatService.sendMessage(
           tempId, currentUserId, widget.chatRoom.id, newMessage.content);
 
@@ -136,6 +145,20 @@ class _ChatScreenState extends State<ChatScreen> {
         : Scaffold(
             appBar: AppBar(
               title: Text(recipient?.username ?? "loading..."),
+              actions: [
+                Icon(Icons.call),
+                SizedBox(
+                  width: 20,
+                ),
+                Icon(Icons.video_call_rounded),
+                SizedBox(
+                  width: 20,
+                ),
+                Icon(Icons.more_vert_outlined),
+                SizedBox(
+                  width: 10,
+                )
+              ],
             ),
             body: Column(
               children: [
