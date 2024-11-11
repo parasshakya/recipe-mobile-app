@@ -23,17 +23,7 @@ class _PrivateChatScreenState extends State<PrivateChatScreen> {
   void initState() {
     super.initState();
 
-    final currentUserId =
-        Provider.of<AuthProvider>(context, listen: false).currentUser!.id;
-
-    chatService.initializeSocket(currentUserId);
-    chatService.connectSocket();
-
     getMessages();
-
-    chatService.onError((error) {
-      showSnackbar(error, context);
-    });
 
     chatService.onNewMessage((newMessage) {
       setState(() {
