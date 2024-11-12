@@ -33,11 +33,17 @@ class ChatService {
       print('Received private message: $data');
       // Handle received messages here (e.g., notify the UI)
     });
+
+    socket.onConnectError((data) {
+      print('Connection Error: $data');
+    });
   }
 
   // Method to connect the socket manually
   void connectSocket() {
-    socket.connect(); // Manually connect
+    if (!socket.connected) {
+      socket.connect(); // Manually connect
+    }
   }
 
   // Method to send a message to the server
@@ -87,6 +93,11 @@ class ChatService {
     });
   }
 
+  void createSeenMessage(String chatRoomId, String readerId) {
+    socket
+        .emit("message_seen", {"chatRoomId": chatRoomId, "readerId": readerId});
+  }
+
   // Listen for real-time incoming messages
   void onNewMessage(Function(ChatMessage message) onMessageReceived) {
     socket.on('receive_message', (data) {
@@ -96,9 +107,19 @@ class ChatService {
     });
   }
 
+  void onMessageDelivered(Function(ChatMessage message) onMessageDelivered) {
+    socket.on('message_delivered', (data) {
+      // Handle incoming messages
+      final newMessage = ChatMessage.fromJson(data["message"]);
+      onMessageDelivered(newMessage);
+    });
+  }
+
   // Disconnect the socket
   void disconnectSocket() {
-    socket.disconnect();
+    if (socket.connected) {
+      socket.disconnect();
+    }
   }
 
   // Method to handle cleanup

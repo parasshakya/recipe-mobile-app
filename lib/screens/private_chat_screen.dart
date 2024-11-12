@@ -149,8 +149,8 @@ class _PrivateChatScreenState extends State<PrivateChatScreen> {
         return "Sent";
       case MessageStatus.delivered:
         return "Delivered";
-      case MessageStatus.read:
-        return "Read";
+      case MessageStatus.seen:
+        return "Seen";
       case MessageStatus.failed:
         return "Failed";
       default:

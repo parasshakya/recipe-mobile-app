@@ -98,6 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
   logout() async {
     try {
       await authProvider.logout();
+      chatService.dispose();
     } catch (e) {
       showSnackbar(e.toString(), context);
     }

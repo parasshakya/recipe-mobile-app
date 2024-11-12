@@ -61,6 +61,11 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   setupSocket() {
+    final currentUserId =
+        Provider.of<AuthProvider>(context, listen: false).currentUser!.id;
+
+    chatService.createSeenMessage(widget.chatRoom.id, currentUserId);
+
     chatService.onNewMessage((newMessage) {
       if (mounted) {
         setState(() {
@@ -89,8 +94,6 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> getMessages() async {
-    final currentUserId =
-        Provider.of<AuthProvider>(context, listen: false).currentUser!.id;
     final fetchedMessages =
         await ApiService().getMessagesFromChatRoomId(widget.chatRoom.id);
     setState(() {
@@ -233,8 +236,8 @@ class _ChatScreenState extends State<ChatScreen> {
         return "Sent";
       case MessageStatus.delivered:
         return "Delivered";
-      case MessageStatus.read:
-        return "Read";
+      case MessageStatus.seen:
+        return "Seen";
       case MessageStatus.failed:
         return "Failed";
       default:
