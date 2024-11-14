@@ -98,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
   logout() async {
     try {
       await authProvider.logout();
-      chatService.dispose();
+      chatService.dispose(); // socket connection for chat is disposed
     } catch (e) {
       showSnackbar(e.toString(), context);
     }

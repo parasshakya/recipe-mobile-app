@@ -46,6 +46,14 @@ class ChatService {
     }
   }
 
+  void joinChatRoom(String chatRoomId, String userId) {
+    socket.emit("join_chat_room", {"chatRoomId": chatRoomId, "userId": userId});
+  }
+
+  void leaveChatRoom() {
+    socket.emit("leave_chat_room");
+  }
+
   // Method to send a message to the server
   void sendPrivateMessage(
       String tempId, String senderId, String recipientId, String message) {
@@ -90,6 +98,13 @@ class ChatService {
       final tempId = data["tempId"];
 
       onMessageSent(chatMessage, tempId);
+    });
+  }
+
+  void onMessageSeen(Function(ChatMessage message) onMessageSeen) {
+    socket.on("message_seen", (data) {
+      final chatMessage = ChatMessage.fromJson(data["message"]);
+      onMessageSeen(chatMessage);
     });
   }
 

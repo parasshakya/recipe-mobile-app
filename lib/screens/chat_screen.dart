@@ -25,12 +25,11 @@ class _ChatScreenState extends State<ChatScreen> {
   ScrollController scrollController = ScrollController();
   bool loading = true;
 
-  // @override
-  // void dispose() {
-  //   chatService.disconnectSocket();
-  //   // TODO: implement dispose
-  //   super.dispose();
-  // }
+  @override
+  void dispose() {
+    chatService.leaveChatRoom();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -64,6 +63,8 @@ class _ChatScreenState extends State<ChatScreen> {
     final currentUserId =
         Provider.of<AuthProvider>(context, listen: false).currentUser!.id;
 
+    chatService.joinChatRoom(widget.chatRoom.id, currentUserId);
+
     chatService.createSeenMessage(widget.chatRoom.id, currentUserId);
 
     chatService.onNewMessage((newMessage) {
@@ -90,6 +91,30 @@ class _ChatScreenState extends State<ChatScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         scrollToBottom();
       });
+    });
+
+    chatService.onMessageSeen((message) {
+      if (mounted) {
+        setState(() {
+          int index =
+              messages.indexWhere((element) => element.id == message.id);
+          if (index != -1) {
+            messages[index] = message;
+          }
+        });
+      }
+    });
+
+    chatService.onMessageDelivered((message) {
+      if (mounted) {
+        setState(() {
+          int index =
+              messages.indexWhere((element) => element.id == message.id);
+          if (index != -1) {
+            messages[index] = message;
+          }
+        });
+      }
     });
   }
 

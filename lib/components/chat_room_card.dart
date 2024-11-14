@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:recipe_flutter_app/models/chat_message.dart';
 import 'package:recipe_flutter_app/models/chat_room.dart';
 import 'package:recipe_flutter_app/models/user.dart';
 import 'package:recipe_flutter_app/services/api_services.dart';
@@ -49,7 +50,15 @@ class _ChatRoomCardState extends State<ChatRoomCard> {
         : ListTile(
             title: Text(recipient!.username),
             leading: Image.network(recipient!.image),
-            subtitle: Text(chatRoom!.lastMessage?.content ?? ''),
+            subtitle: Text(
+              chatRoom!.lastMessage?.content ?? '',
+              style: TextStyle(
+                  fontWeight: chatRoom!.lastMessage?.senderId ==
+                              recipient!.id &&
+                          chatRoom!.lastMessage!.status != MessageStatus.seen
+                      ? FontWeight.bold
+                      : FontWeight.normal),
+            ),
             trailing: Text(
               DateFormat('MMM d, yyyy h:mm a')
                   .format(chatRoom!.lastMessageTime.toLocal()),
