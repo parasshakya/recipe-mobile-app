@@ -10,8 +10,8 @@ import 'package:recipe_flutter_app/services/chat_service.dart';
 import 'package:recipe_flutter_app/utils.dart';
 
 class ChatScreen extends StatefulWidget {
-  final ChatRoom chatRoom;
-  const ChatScreen({super.key, required this.chatRoom});
+  final String chatRoomId;
+  const ChatScreen({super.key, required this.chatRoomId});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -63,9 +63,9 @@ class _ChatScreenState extends State<ChatScreen> {
     final currentUserId =
         Provider.of<AuthProvider>(context, listen: false).currentUser!.id;
 
-    chatService.joinChatRoom(widget.chatRoom.id, currentUserId);
+    chatService.joinChatRoom(widget.chatRoomId, currentUserId);
 
-    chatService.createSeenMessage(widget.chatRoom.id, currentUserId);
+    chatService.createSeenMessage(widget.chatRoomId, currentUserId);
 
     chatService.onNewMessage((newMessage) {
       if (mounted) {
@@ -120,7 +120,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> getMessages() async {
     final fetchedMessages =
-        await ApiService().getMessagesFromChatRoomId(widget.chatRoom.id);
+        await ApiService().getMessagesFromChatRoomId(widget.chatRoomId);
     setState(() {
       messages = fetchedMessages;
     });
@@ -130,8 +130,10 @@ class _ChatScreenState extends State<ChatScreen> {
     final currentUserId =
         Provider.of<AuthProvider>(context, listen: false).currentUser!.id;
 
-    final recipientId = widget.chatRoom.userIds
-        .firstWhere((element) => element != currentUserId);
+    final chatRoom = await ApiService().getChatRoom(widget.chatRoomId);
+
+    final recipientId =
+        chatRoom.userIds.firstWhere((element) => element != currentUserId);
     recipient = await ApiService().getUserById(recipientId);
     setState(() {});
   }
@@ -155,7 +157,7 @@ class _ChatScreenState extends State<ChatScreen> {
         });
       }
       chatService.sendMessage(
-          tempId, currentUserId, widget.chatRoom.id, newMessage.content);
+          tempId, currentUserId, widget.chatRoomId, newMessage.content);
 
       messageController.clear();
       scrollToBottom();

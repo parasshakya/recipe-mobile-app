@@ -10,6 +10,7 @@ import 'package:recipe_flutter_app/main.dart';
 import 'package:recipe_flutter_app/models/user.dart';
 import 'package:recipe_flutter_app/providers/auth_provider.dart';
 import 'package:recipe_flutter_app/providers/recipe_provider.dart';
+import 'package:recipe_flutter_app/screens/chat_screen.dart';
 import 'package:recipe_flutter_app/screens/recipe_detail_screen.dart';
 import 'package:recipe_flutter_app/screens/user_detail_screen.dart';
 import 'package:recipe_flutter_app/services/api_services.dart';
@@ -63,6 +64,11 @@ class PushNotificationService {
             builder: (context) => RecipeDetailScreen(
                   recipeId: recipeId,
                 )));
+      }
+      if (message.data["type"] == "chatMessage") {
+        final chatRoomId = message.data["chatRoomId"];
+        Navigator.of(navigatorKey.currentState!.context).push(MaterialPageRoute(
+            builder: (context) => ChatScreen(chatRoomId: chatRoomId)));
       }
     }
   }

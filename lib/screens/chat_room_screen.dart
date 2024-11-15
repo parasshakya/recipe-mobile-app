@@ -57,7 +57,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     onTap: () {
                       Navigator.of(context).push(MaterialPageRoute(
                           builder: (context) => ChatScreen(
-                                chatRoom: chatroom,
+                                chatRoomId: chatroom.id,
                               )));
                     },
                     child: ChatRoomCard(

@@ -78,6 +78,19 @@ class ApiService {
     }
   }
 
+  Future<ChatRoom> getChatRoom(String chatRoomId) async {
+    try {
+      final response = await dio.get("/chatRooms/$chatRoomId");
+
+      final data = response.data;
+      final chatRoom = data["chatRoom"];
+      return ChatRoom.fromJson(chatRoom);
+    } catch (e) {
+      print("Error fetching chatroom");
+      throw Exception("Error fetching chatroom data");
+    }
+  }
+
   Future<void> clearTokens() async {
     try {
       _secureStorage.delete(key: "accessToken");
