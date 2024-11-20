@@ -7,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_flutter_app/firebase_options.dart';
 import 'package:recipe_flutter_app/main.dart';
+import 'package:recipe_flutter_app/models/chat_message.dart';
 import 'package:recipe_flutter_app/models/user.dart';
 import 'package:recipe_flutter_app/providers/auth_provider.dart';
 import 'package:recipe_flutter_app/providers/recipe_provider.dart';
@@ -17,10 +18,20 @@ import 'package:recipe_flutter_app/services/api_services.dart';
 import 'package:recipe_flutter_app/services/local_notification_service.dart';
 
 //this handler function is a top-level function required for handling background messages or after app is terminated
+// You can perform any task like saving data, processing notifications, etc.
+//the backgroundhandler cannot be used for navigation because it runs in a different isolate.
+@pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  print("BAckground message");
+  if (message.data.containsKey("type")) {
+    if (message.data["type"] == "chatMessage") {
+      final chatRoomId = message.data["chatRoomId"];
+      final chatMessageId = message.data["chatMessageId"];
 
-  // You can perform any task like saving data, processing notifications, etc.
+      await ApiService().updateChatMessageToDelivered(
+          chatRoomId, chatMessageId, MessageStatus.delivered);
+    }
+  }
 }
 
 class PushNotificationService {
@@ -75,11 +86,6 @@ class PushNotificationService {
   // Define the background message handler
 
   void setupFirebaseMessaging() {
-    // Register the background message handler for data processing and updating local storage
-    //the backgroundhandler cannot be used for navigation because it runs in a different isolate.
-
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-
     //this is called when app is in foreground state.
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       if (message.notification != null) {
@@ -93,7 +99,7 @@ class PushNotificationService {
       }
     });
 
-    //this is called when app is in background.
+    //this is called when you click on notification when app is in background.
     FirebaseMessaging.onMessageOpenedApp.listen(handleMessage);
 
     // //this is when you click notification when app is terminated or not running.

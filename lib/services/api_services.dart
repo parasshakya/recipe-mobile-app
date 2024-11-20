@@ -63,11 +63,19 @@ class ApiService {
     }
   }
 
-  Future<List<ChatMessage>> getMessagesFromChatRoomId(String chatroomId) async {
-    final response = await dio.get("//chatMessages/${chatroomId}");
-    final data = response.data;
-    final messages = data["messages"] as List;
-    return messages.map((e) => ChatMessage.fromJson(e)).toList();
+  Future<Response> getMessagesFromChatRoomId(String chatroomId,
+      {DateTime? beforeTimestamp, int limit = 20}) async {
+    try {
+      final response = await dio.get("/chatMessages", queryParameters: {
+        "limit": limit,
+        "chatRoomId": chatroomId,
+        if (beforeTimestamp != null) "before": beforeTimestamp.toIso8601String()
+      });
+      return response;
+    } catch (e) {
+      print("Error while fetching messages");
+      throw Exception("Error while fetching messages: ${e}");
+    }
   }
 
   Future<void> clearUserData() async {
@@ -88,6 +96,19 @@ class ApiService {
     } catch (e) {
       print("Error fetching chatroom");
       throw Exception("Error fetching chatroom data");
+    }
+  }
+
+  Future<void> updateChatMessageToDelivered(
+      String chatRoomId, String chatMessageId, MessageStatus status) async {
+    try {
+      final response = await dio.put("/chatMessages", data: {
+        "chatRoomId": chatRoomId,
+        "chatMessageId": chatMessageId,
+        "status": status.name
+      });
+    } catch (e) {
+      print("Error while updating message");
     }
   }
 

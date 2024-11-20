@@ -14,7 +14,7 @@ class ChatService {
   // Method to initialize the socket connection
   void initializeSocket(String userId) {
     // Initialize the connection to the socket server
-    socket = IO.io('http://10.0.2.2:3000', <String, dynamic>{
+    socket = IO.io(Config.serverUrl, <String, dynamic>{
       'transports': ['websocket'],
       'query': {'userId': userId},
       'autoConnect': false,

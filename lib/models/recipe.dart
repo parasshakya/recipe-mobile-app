@@ -69,7 +69,6 @@ class Recipe {
   // Method to convert a Recipe object to JSON
   Map<String, dynamic> toJson() {
     return {
-      '_id': id,
       'user': user.toJson(),
       'cuisine': cuisine.toJson(),
       'description': description,

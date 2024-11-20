@@ -9,12 +9,15 @@ import 'package:recipe_flutter_app/providers/recipe_provider.dart';
 import 'package:recipe_flutter_app/screens/home_screen.dart';
 import 'package:recipe_flutter_app/screens/splash_screen.dart';
 import 'package:recipe_flutter_app/services/local_notification_service.dart';
+import 'package:recipe_flutter_app/services/push_notification_service.dart';
 
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
   await LocalNotificationService().init();
 
   runApp(MultiProvider(

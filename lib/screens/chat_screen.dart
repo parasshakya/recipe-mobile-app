@@ -24,6 +24,9 @@ class _ChatScreenState extends State<ChatScreen> {
   User? recipient;
   ScrollController scrollController = ScrollController();
   bool loading = true;
+  bool fetchMoreLoading = false;
+  bool hasMore = false;
+  DateTime? before;
 
   @override
   void dispose() {
@@ -44,6 +47,14 @@ class _ChatScreenState extends State<ChatScreen> {
 
     await getMessages();
     loading = false;
+
+    scrollController.addListener(() {
+      if (scrollController.position.pixels == 0 &&
+          hasMore &&
+          !fetchMoreLoading) {
+        getMessages();
+      }
+    });
 
     setState(() {});
 
@@ -119,11 +130,34 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> getMessages() async {
-    final fetchedMessages =
-        await ApiService().getMessagesFromChatRoomId(widget.chatRoomId);
-    setState(() {
-      messages = fetchedMessages;
-    });
+    try {
+      setState(() {
+        fetchMoreLoading = true;
+      });
+      final response = await ApiService().getMessagesFromChatRoomId(
+          widget.chatRoomId,
+          beforeTimestamp: before);
+
+      final data = response.data;
+      final fetchedMessages = (data["messages"] as List)
+          .map((e) => ChatMessage.fromJson(e))
+          .toList();
+      final hasMore = data["hasMore"];
+      this.hasMore = hasMore;
+      if (fetchedMessages.isNotEmpty) {
+        before = fetchedMessages.first.timestamp;
+      }
+      messages.insertAll(0, fetchedMessages);
+
+      setState(() {});
+    } catch (e) {
+      print("ERROR fetching messages");
+      showSnackbar("error while fetching messages", context);
+    } finally {
+      setState(() {
+        fetchMoreLoading = false;
+      });
+    }
   }
 
   fetchRecipient() async {
@@ -192,6 +226,10 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             body: Column(
               children: [
+                if (fetchMoreLoading)
+                  Center(
+                    child: CircularProgressIndicator(),
+                  ),
                 Expanded(child: buildMessageList()),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
