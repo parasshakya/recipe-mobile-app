@@ -17,7 +17,7 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final ChatService chatService = ChatService();
   final TextEditingController messageController = TextEditingController();
   List<ChatMessage> messages = [];
@@ -29,14 +29,34 @@ class _ChatScreenState extends State<ChatScreen> {
   DateTime? before;
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      //this state is when the app is in background
+      chatService.leaveChatRoom();
+    } else if (state == AppLifecycleState.resumed) {
+      //this state is when the app is in foreground
+      final currentUserId =
+          Provider.of<AuthProvider>(context, listen: false).currentUser!.id;
+
+      chatService.joinChatRoom(widget.chatRoomId, currentUserId);
+      chatService.createSeenMessage(widget.chatRoomId, currentUserId);
+    }
+    // TODO: implement didChangeAppLifecycleState
+    super.didChangeAppLifecycleState(state);
+  }
+
+  @override
   void dispose() {
     chatService.leaveChatRoom();
+    WidgetsBinding.instance.removeObserver(this);
+
     super.dispose();
   }
 
   @override
   void initState() {
     initialize();
+    WidgetsBinding.instance.addObserver(this);
 
     super.initState();
   }
