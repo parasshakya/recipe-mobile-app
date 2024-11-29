@@ -26,7 +26,7 @@ class ApiService {
 
   ApiService() {
     dio = Dio(BaseOptions(
-      baseUrl: Config.baseUrl,
+      baseUrl: Config.localBaseUrl,
       connectTimeout: const Duration(seconds: 10), // 10 seconds
       receiveTimeout: const Duration(seconds: 15), // 15 seconds
     ));
@@ -47,6 +47,36 @@ class ApiService {
     } catch (e) {
       throw Exception(e);
     }
+  }
+
+  Future<User> createUserWithGoogle(String idToken) async {
+    try {
+      final response =
+          await dio.post("/auth/google", data: {"idToken": idToken});
+      if (response.statusCode == 200) {
+        print("Google user created successfully");
+        showSnackbar("Sign-in successful", navigatorKey.currentState!.context);
+      }
+      final data = response.data;
+      final accessToken = data["data"]["accessToken"];
+      final userData = data["data"]["userData"];
+      final refreshToken = data["data"]["refreshToken"];
+
+      final userDataString = jsonEncode(userData);
+
+      print(userDataString);
+
+      await _secureStorage.write(key: "accessToken", value: accessToken);
+      await _secureStorage.write(key: "refreshToken", value: refreshToken);
+      await _secureStorage.write(key: "userData", value: userDataString);
+
+      return User.fromJson(userData);
+    } catch (e) {
+      print("Error while creating user with google");
+      showSnackbar("Error while creating google user",
+          navigatorKey.currentState!.context);
+    }
+    throw Exception("Failed to create user with google sign-in");
   }
 
   Future<List<ChatRoom>> getMyChatRooms() async {

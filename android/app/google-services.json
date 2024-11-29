@@ -14,7 +14,15 @@
       },
       "oauth_client": [
         {
-          "client_id": "102699028145-46jao8c3ij668tmnhmjjni8j1ophi7d8.apps.googleusercontent.com",
+          "client_id": "102699028145-kp6p5onruoo1v9erb6r9mp8va93qgnb7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.recipe_flutter_app",
+            "certificate_hash": "566a39c809f5a828978a6bbb75ac235fe26e0682"
+          }
+        },
+        {
+          "client_id": "102699028145-a2feb6ojh9qcgaahkmvg89sfr9as2b9i.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -29,6 +37,13 @@
             {
               "client_id": "102699028145-46jao8c3ij668tmnhmjjni8j1ophi7d8.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "102699028145-r5hc4hje55muqa1irpuhp9vpqnad3hvn.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.recipeFlutterApp"
+              }
             }
           ]
         }
@@ -43,7 +58,7 @@
       },
       "oauth_client": [
         {
-          "client_id": "102699028145-46jao8c3ij668tmnhmjjni8j1ophi7d8.apps.googleusercontent.com",
+          "client_id": "102699028145-a2feb6ojh9qcgaahkmvg89sfr9as2b9i.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -58,6 +73,13 @@
             {
               "client_id": "102699028145-46jao8c3ij668tmnhmjjni8j1ophi7d8.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "102699028145-r5hc4hje55muqa1irpuhp9vpqnad3hvn.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.recipeFlutterApp"
+              }
             }
           ]
         }

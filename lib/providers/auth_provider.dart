@@ -37,6 +37,12 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> signInWithGoogle(String idToken) async {
+    final user = await ApiService().createUserWithGoogle(idToken);
+    _currentUser = user;
+    notifyListeners();
+  }
+
   Future<User?> getUserById(String userId) async {
     _currentUser = await ApiService().getUserById(userId);
     notifyListeners();

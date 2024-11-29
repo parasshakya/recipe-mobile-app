@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_flutter_app/utils.dart';
 import 'package:recipe_flutter_app/providers/auth_provider.dart';
@@ -20,6 +21,27 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final apiService = ApiService();
   late AuthProvider authProvider;
+
+  handleSignIn() async {
+    try {
+      GoogleSignIn googleSignIn = GoogleSignIn();
+      final googleAccount = await googleSignIn.signIn();
+
+      final googleSignInAuth = await googleAccount?.authentication;
+
+// We will use this ID token for authentication on the backend side.
+
+      final idToken = googleSignInAuth?.idToken;
+
+      if (idToken != null) {
+        await authProvider.signInWithGoogle(idToken);
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => HomeScreen()));
+      }
+    } catch (e) {
+      print("Error while creating google user");
+    }
+  }
 
   void _login() async {
     try {
@@ -111,7 +133,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ],
-              )
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              ElevatedButton(
+                  onPressed: () {
+                    handleSignIn();
+                  },
+                  child: Text("Login with google"))
             ],
           ),
         ),
