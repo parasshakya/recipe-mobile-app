@@ -60,8 +60,15 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     if (loading) {
-      return Center(
-        child: CircularProgressIndicator(),
+      return Scaffold(
+        backgroundColor: Colors.amber,
+        body: Center(
+          child: Icon(
+            Icons.food_bank_rounded,
+            size: 180,
+            color: Colors.white,
+          ),
+        ),
       );
     } else {
       return screen!;
