@@ -9,6 +9,7 @@ import 'package:recipe_flutter_app/providers/auth_provider.dart';
 import 'package:recipe_flutter_app/providers/recipe_provider.dart';
 import 'package:recipe_flutter_app/screens/home_screen.dart';
 import 'package:recipe_flutter_app/screens/login_screen.dart';
+import 'package:recipe_flutter_app/screens/navigation_screen.dart';
 import 'package:recipe_flutter_app/screens/recipe_detail_screen.dart';
 import 'package:recipe_flutter_app/services/api_services.dart';
 import 'package:recipe_flutter_app/services/push_notification_service.dart';
@@ -42,7 +43,7 @@ class _SplashScreenState extends State<SplashScreen> {
   buildScreen() async {
     final isUser = await checkUser();
     if (isUser) {
-      screen = HomeScreen();
+      screen = NavigationScreen();
     } else {
       screen = LoginScreen();
     }

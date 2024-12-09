@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
+import 'package:recipe_flutter_app/screens/navigation_screen.dart';
 import 'package:recipe_flutter_app/utils.dart';
 import 'package:recipe_flutter_app/providers/auth_provider.dart';
 import 'package:recipe_flutter_app/screens/home_screen.dart';
@@ -36,10 +37,10 @@ class _LoginScreenState extends State<LoginScreen> {
       if (idToken != null) {
         await authProvider.signInWithGoogle(idToken);
         Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => HomeScreen()));
+            MaterialPageRoute(builder: (context) => NavigationScreen()));
       }
     } catch (e) {
-      print("Error while creating google user");
+      print("Error while signing in. Please try again later.");
     }
   }
 

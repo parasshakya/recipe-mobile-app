@@ -1,121 +1,87 @@
 import 'package:recipe_flutter_app/models/category.dart';
+import 'package:recipe_flutter_app/models/comment.dart';
 import 'package:recipe_flutter_app/models/cuisine.dart';
 import 'package:recipe_flutter_app/models/user.dart';
 
 class Recipe {
   final String id;
-  final User user;
-  final Cuisine cuisine;
+  final String userId;
+  final String cuisineId;
   final String description;
   final String name;
   final List<String> instructions; // List of instructions
   final List<String> ingredients; // List of ingredients
   final String image;
-  final List<Comment> comments;
-  final List<String> likes;
+  final List<String>? commentIds;
+  final List<String>? likeIds;
   final int preparingTimeInHours;
   final int preparingTimeInMinutes;
   final int preparingTimeInSeconds;
   final int cookingTimeInHours;
   final int cookingTimeInMinutes;
   final int cookingTimeInSeconds;
-  final Category category;
+  final String categoryId;
 
   Recipe({
     required this.id,
-    required this.user,
-    required this.cuisine,
+    required this.userId,
+    required this.cuisineId,
     required this.description,
     required this.name,
     required this.instructions,
     required this.ingredients,
     required this.image,
-    required this.comments,
-    required this.likes,
+    this.commentIds,
+    this.likeIds,
     required this.preparingTimeInHours,
     required this.preparingTimeInMinutes,
     required this.preparingTimeInSeconds,
     required this.cookingTimeInHours,
     required this.cookingTimeInMinutes,
     required this.cookingTimeInSeconds,
-    required this.category,
+    required this.categoryId,
   });
 
   // Factory constructor to create a Recipe object from JSON
   factory Recipe.fromJson(Map<String, dynamic> json) {
     return Recipe(
       id: json['_id'],
-      user: User.fromJson(json['user']),
-      cuisine: Cuisine.fromJson(json['cuisine']),
+      userId: json["userId"],
+      cuisineId: json["cuisineId"],
       description: json['description'],
       name: json['name'],
       instructions: List<String>.from(json['instructions']),
       ingredients: List<String>.from(json['ingredients']),
       image: json['image'],
-      comments: (json['comments'] as List)
-          .map((comment) => Comment.fromJson(comment))
-          .toList(),
-      likes: List<String>.from(json["likes"]),
+      commentIds: List<String>.from(json["commentIds"]),
+      likeIds: List<String>.from(json["likeIds"]),
       preparingTimeInHours: json['preparingTimeInHours'] ?? 0,
       preparingTimeInMinutes: json['preparingTimeInMinutes'] ?? 0,
       preparingTimeInSeconds: json['preparingTimeInSeconds'] ?? 0,
       cookingTimeInHours: json['cookingTimeInHours'] ?? 0,
       cookingTimeInMinutes: json['cookingTimeInMinutes'] ?? 0,
       cookingTimeInSeconds: json['cookingTimeInSeconds'] ?? 0,
-      category: Category.fromJson(json['category']),
+      categoryId: json["categoryId"],
     );
   }
 
   // Method to convert a Recipe object to JSON
   Map<String, dynamic> toJson() {
     return {
-      'user': user.toJson(),
-      'cuisine': cuisine.toJson(),
+      'userId': userId,
+      'cuisineId': cuisineId,
       'description': description,
       'name': name,
+      "image": image,
       'instructions': instructions,
       'ingredients': ingredients,
-      'image': image,
-      'comments': comments.map((comment) => comment.toJson()).toList(),
-      'likes': likes,
       'preparingTimeInHours': preparingTimeInHours,
       'preparingTimeInMinutes': preparingTimeInMinutes,
       'preparingTimeInSeconds': preparingTimeInSeconds,
       'cookingTimeInHours': cookingTimeInHours,
       'cookingTimeInMinutes': cookingTimeInMinutes,
       'cookingTimeInSeconds': cookingTimeInSeconds,
-      'category': category.toJson(),
-    };
-  }
-}
-
-// Comment model
-class Comment {
-  final String userId;
-  final String text;
-  final DateTime createdAt;
-
-  Comment({
-    required this.userId,
-    required this.text,
-    required this.createdAt,
-  });
-
-  // Factory constructor to create a Comment object from JSON
-  factory Comment.fromJson(Map<String, dynamic> json) {
-    return Comment(
-      userId: json["userId"],
-      text: json['text'],
-      createdAt: DateTime.parse(json['createdAt']),
-    );
-  }
-
-  // Method to convert a Comment object to JSON
-  Map<String, dynamic> toJson() {
-    return {
-      'userId': userId,
-      'text': text,
-      'createdAt': createdAt.toIso8601String(),
+      'categoryId': categoryId,
     };
   }
 }

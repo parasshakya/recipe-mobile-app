@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -6,8 +7,11 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_flutter_app/config/config.dart';
+import 'package:recipe_flutter_app/models/category.dart';
 import 'package:recipe_flutter_app/models/chat_message.dart';
 import 'package:recipe_flutter_app/models/chat_room.dart';
+import 'package:recipe_flutter_app/models/comment.dart';
+import 'package:recipe_flutter_app/models/cuisine.dart';
 import 'package:recipe_flutter_app/models/notification.dart';
 import 'package:recipe_flutter_app/screens/login_screen.dart';
 import 'package:recipe_flutter_app/utils.dart';
@@ -34,20 +38,6 @@ class ApiService {
   }
 
   final _secureStorage = const FlutterSecureStorage();
-
-  Future<void> createRecipe(Recipe recipe) async {
-    try {
-      final response = await dio.post("/recipes", data: recipe.toJson());
-
-      if (response.statusCode == 201) {
-        print("Recipe Created");
-      } else {
-        print("Recipe failed to create");
-      }
-    } catch (e) {
-      throw Exception(e);
-    }
-  }
 
   Future<User> createUserWithGoogle(String idToken) async {
     try {
@@ -91,6 +81,12 @@ class ApiService {
       print("Error while fetching chatRooms");
       throw Exception("Failed to load chatRooms");
     }
+  }
+
+  Future<Category> fetchCategory(String categoryId) async {
+    final response = await dio.get("/categories/${categoryId}");
+    final categoryJSON = response.data["data"];
+    return Category.fromJson(categoryJSON);
   }
 
   Future<Response> getMessagesFromChatRoomId(String chatroomId,
@@ -198,10 +194,15 @@ class ApiService {
     }
   }
 
+  Future<List<Comment>> getCommentsInARecipe(String recipeId) async {
+    final response = await dio.get("/recipes/${recipeId}/comments");
+    final comments = response.data["data"] as List;
+    return comments.map((e) => Comment.fromJson(e)).toList();
+  }
+
   Future<List<UserNotification>> fetchNotifications() async {
     try {
-      final response =
-          await dio.get("/notifications/${authProvider.currentUser!.id}");
+      final response = await dio.get("/notifications");
 
       if (response.statusCode != 200) throw ("Error fetching notifications");
 
@@ -244,6 +245,18 @@ class ApiService {
     } catch (e) {
       rethrow;
     }
+  }
+
+  Future<List<Cuisine>> fetchCuisines() async {
+    final response = await dio.get("/cuisines");
+    final cuisines = response.data['data'] as List;
+    return cuisines.map((e) => Cuisine.fromJson(e)).toList();
+  }
+
+  Future<List<Category>> fetchCategories() async {
+    final response = await dio.get("/categories");
+    final categories = response.data['data'] as List;
+    return categories.map((e) => Category.fromJson(e)).toList();
   }
 
   Future<Recipe> getRecipeById(String id) async {
@@ -303,6 +316,17 @@ class ApiService {
       print("Error during signup: $e");
       rethrow;
     }
+  }
+
+  Future<void> createRecipe(Recipe recipe) async {
+    String fileName = recipe.image.split('/').last;
+    FormData formdata = FormData.fromMap({
+      ...recipe.toJson(),
+      "image": await MultipartFile.fromFile(recipe.image, filename: fileName)
+    });
+    await dio.post("/recipes",
+        data: formdata,
+        options: Options(headers: {"Content-Type": "multipart/form-data"}));
   }
 
   Future<Response> resendOTP(String email) async {
@@ -381,10 +405,17 @@ class ApiService {
     }
   }
 
+  Future<Cuisine> fetchCuisine(String cuisineId) async {
+    final response = await dio.get("/cuisines/${cuisineId}");
+
+    final cuisineData = response.data["data"];
+    return Cuisine.fromJson(cuisineData);
+  }
+
   Future<Recipe> postComment(String recipeId, String text) async {
     try {
-      final response =
-          await dio.post("/recipes/comment/$recipeId", data: {"text": text});
+      final response = await dio.post("/recipes/comments",
+          data: {"recipeId": recipeId, "text": text});
       print("RESPONSE STATUS: ${response.statusCode}");
       if (response.statusCode != 200) {
         throw Exception("Error while commenting");

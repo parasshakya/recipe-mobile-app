@@ -19,7 +19,7 @@ class AppInterceptor extends Interceptor {
     // Retrieve the token from storage
     String? accessToken = await secureStorage.read(key: "accessToken");
 
-    print("ACCESS TOKEN IS $accessToken");
+    print("ACCESS TOKEN SENT IS $accessToken");
 
     // Add headers if the token exists
     if (accessToken != null) {

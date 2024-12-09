@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_flutter_app/providers/auth_provider.dart';
 import 'package:recipe_flutter_app/screens/home_screen.dart';
+import 'package:recipe_flutter_app/screens/navigation_screen.dart';
 import 'package:recipe_flutter_app/services/api_services.dart';
 import 'package:recipe_flutter_app/utils.dart';
 
@@ -59,7 +60,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
       await authProvider.signup(widget.email, otpController.text.trim());
 
       Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => HomeScreen()));
+          context, MaterialPageRoute(builder: (context) => NavigationScreen()));
     } catch (e) {
       showSnackbar("Error while verifying OTP", context);
     }

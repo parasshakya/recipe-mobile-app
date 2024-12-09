@@ -18,6 +18,11 @@ class RecipeProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  clearRecipes() {
+    _recipes = [];
+    notifyListeners();
+  }
+
   Future<void> fetchAllRecipes({int limit = 10}) async {
     final response =
         await ApiService().getAllRecipes(limit: limit, page: currentPage);
