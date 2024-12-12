@@ -3,6 +3,7 @@ import 'package:recipe_flutter_app/models/notification.dart';
 class User {
   final String id;
   final String username;
+  final String? bio;
   final String email;
   final String image;
   final List? savedRecipes;
@@ -13,6 +14,7 @@ class User {
   User(
       {required this.id,
       required this.username,
+      this.bio,
       required this.email,
       required this.image,
       this.notifications,
@@ -26,6 +28,7 @@ class User {
       id: json["_id"],
       username: json['username'],
       email: json['email'],
+      bio: json["bio"],
       image: json['image'],
       savedRecipes:
           json['savedRecipes'] != null ? List.from(json['savedRecipes']) : null,
@@ -45,6 +48,7 @@ class User {
       "id": id,
       'username': username,
       'email': email,
+      "bio": bio,
       'image': image,
       'savedRecipes': savedRecipes,
       'followers': followers,

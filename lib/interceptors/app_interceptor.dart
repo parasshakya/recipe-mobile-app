@@ -49,9 +49,10 @@ class AppInterceptor extends Interceptor {
 
     // Check if the error is a 401 Unauthorized error
     if (err.response?.statusCode == 401) {
+      print("Access token is expired");
+
       // Refresh the token
       final newAccessTokenResponse = await refreshAccessToken();
-      print("NEW ACCESS TOKEN RESPONSE IS $newAccessTokenResponse");
 
       if (newAccessTokenResponse != null &&
           newAccessTokenResponse.statusCode == 200) {
@@ -121,7 +122,7 @@ class AppInterceptor extends Interceptor {
       return response;
     } on DioException catch (e) {
       // Handle the error (logging, etc.)
-      print("Error refreshing token $e");
+      print("Error refreshing access token $e");
       print("DioException caught: ${e.message}");
       print("Request Options: ${e.requestOptions}");
       if (e.response != null) {

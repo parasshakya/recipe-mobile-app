@@ -1,9 +1,12 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_flutter_app/providers/auth_provider.dart';
+import 'package:recipe_flutter_app/screens/login_screen.dart';
 import 'package:recipe_flutter_app/screens/otp_verification_screen.dart';
 import 'package:recipe_flutter_app/utils.dart';
 import 'package:recipe_flutter_app/screens/home_screen.dart';
@@ -80,6 +83,41 @@ class _SignUpScreenState extends State<SignUpScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  GestureDetector(
+                    onTap: pickImage,
+                    child: Stack(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: Colors.grey.shade300,
+                          radius: 50,
+                          backgroundImage: image != null
+                              ? FileImage(File(image!.path))
+                              : null,
+                          child: image == null
+                              ? const Icon(
+                                  Icons.person,
+                                  size: 60,
+                                )
+                              : null,
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: CircleAvatar(
+                            backgroundColor: Colors.grey.shade400,
+                            radius: 20,
+                            child: Icon(
+                              Icons.edit,
+                              size: 24,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: 40,
+                  ),
                   TextFormField(
                     controller: _nameController,
                     decoration: const InputDecoration(
@@ -126,23 +164,38 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       return null;
                     },
                   ),
-                  if (image != null) ...[
-                    const SizedBox(height: 20.0),
-                    Image.file(
-                      File(image!.path),
-                      width: 200,
-                      height: 200,
-                    )
-                  ],
                   const SizedBox(height: 20.0),
-                  ElevatedButton(
-                    onPressed: pickImage,
-                    child: const Text("Select Profile Picture"),
+                  Container(
+                    width: 200,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.amber.shade200),
+                      onPressed: _signUp,
+                      child: const Text(
+                        "Sign Up",
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 20.0),
-                  ElevatedButton(
-                    onPressed: _signUp,
-                    child: const Text("Sign Up"),
+                  const SizedBox(height: 40.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text("Already have an account?"),
+                      const SizedBox(width: 4.0),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) => LoginScreen()));
+                        },
+                        child: const Text(
+                          "Login",
+                          style: TextStyle(
+                              color: Colors.red,
+                              decoration: TextDecoration.underline),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

@@ -12,18 +12,22 @@ class NotificationScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text("Notifications"),
       ),
-      body: Column(
-        children: [
-          ...notifications.map((e) => Card(
-                child: ListTile(
-                  title: Text(e.message),
-                  trailing: e.type == NotificationType.follow
-                      ? Icon(Icons.follow_the_signs)
-                      : Icon(Icons.notifications),
-                ),
-              ))
-        ],
-      ),
+      body: notifications.isEmpty
+          ? Center(
+              child: Text("No notifications to show"),
+            )
+          : Column(
+              children: [
+                ...notifications.map((e) => Card(
+                      child: ListTile(
+                        title: Text(e.message),
+                        trailing: e.type == NotificationType.follow
+                            ? Icon(Icons.follow_the_signs)
+                            : Icon(Icons.notifications),
+                      ),
+                    ))
+              ],
+            ),
     );
   }
 }

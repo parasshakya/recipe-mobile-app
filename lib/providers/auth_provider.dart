@@ -1,8 +1,10 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:recipe_flutter_app/main.dart';
 import 'package:recipe_flutter_app/models/user.dart';
+import 'package:recipe_flutter_app/providers/recipe_provider.dart';
 import 'package:recipe_flutter_app/screens/login_screen.dart';
 import 'package:recipe_flutter_app/services/api_services.dart';
 

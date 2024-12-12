@@ -13,6 +13,7 @@ import 'package:recipe_flutter_app/models/chat_room.dart';
 import 'package:recipe_flutter_app/models/comment.dart';
 import 'package:recipe_flutter_app/models/cuisine.dart';
 import 'package:recipe_flutter_app/models/notification.dart';
+import 'package:recipe_flutter_app/providers/recipe_provider.dart';
 import 'package:recipe_flutter_app/screens/login_screen.dart';
 import 'package:recipe_flutter_app/utils.dart';
 import 'package:recipe_flutter_app/interceptors/app_interceptor.dart';
@@ -63,7 +64,7 @@ class ApiService {
       return User.fromJson(userData);
     } catch (e) {
       print("Error while creating user with google");
-      showSnackbar("Error while creating google user",
+      showSnackbar("Error while signing in. Please try again later.",
           navigatorKey.currentState!.context);
     }
     throw Exception("Failed to create user with google sign-in");
@@ -175,6 +176,7 @@ class ApiService {
       if (response.statusCode == 200) {
         await clearUserData();
         await clearTokens();
+
         Navigator.of(navigatorKey.currentState!.context).pushReplacement(
             MaterialPageRoute(builder: (context) => LoginScreen()));
       }
@@ -235,15 +237,25 @@ class ApiService {
     try {
       final response = await dio.get("/recipes/user/$userId");
 
-      if (response.statusCode == 200) {
-        final data = response.data;
-        final recipes = data["data"] as List;
-        return recipes.map((e) => Recipe.fromJson(e)).toList();
-      } else {
-        throw Exception();
-      }
+      final data = response.data;
+      final recipes = data["data"] as List;
+      return recipes.map((e) => Recipe.fromJson(e)).toList();
     } catch (e) {
-      rethrow;
+      print("Error while fetching recipes");
+      throw Exception("Error while fetching recipes");
+    }
+  }
+
+  Future<List<Recipe>> searchForRecipes(String query) async {
+    try {
+      final response =
+          await dio.get("/recipes/search", queryParameters: {"query": query});
+
+      final recipes = response.data["data"] as List;
+      return recipes.map((e) => Recipe.fromJson(e)).toList();
+    } catch (e) {
+      print("error while searching recipes");
+      throw Exception("Error while searching for recipes");
     }
   }
 
@@ -377,6 +389,22 @@ class ApiService {
     }
   }
 
+  Future<void> updateUser(String username, String bio, String imagePath) async {
+    try {
+      final currentUser =
+          Provider.of<AuthProvider>(navigatorKey.currentState!.context)
+              .currentUser!;
+      final fileName = imagePath.split('/').last;
+      final formData = FormData.fromMap({
+        "username": username,
+        "bio": bio,
+        "image": MultipartFile.fromFile(imagePath, filename: fileName)
+      });
+      final response =
+          await dio.put("/users", queryParameters: {"userId": currentUser.id});
+    } catch (e) {}
+  }
+
   Future<void> saveFcmToken(String fcmToken) async {
     try {
       final response =
@@ -474,13 +502,9 @@ class ApiService {
   Future<User> getUserById(String userId) async {
     try {
       final response = await dio.get("/users/$userId");
-      if (response.statusCode == 200) {
-        final data = response.data["data"];
-        final user = User.fromJson(data);
-        return user;
-      } else {
-        throw Exception("Failed to get user");
-      }
+      final data = response.data["data"];
+      final user = User.fromJson(data);
+      return user;
     } catch (e) {
       print("Error while fetching user: $e");
       throw Exception("Error while fetching user");

@@ -21,7 +21,7 @@ class RecipeCard extends StatelessWidget {
       height: 300,
       child: Card(
         elevation: 5,
-        margin: EdgeInsets.all(10),
+        margin: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[

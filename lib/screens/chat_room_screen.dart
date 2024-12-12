@@ -38,33 +38,35 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         title: Text("messages"),
       ),
       body: loading
-          ? Center(
-              child: CircularProgressIndicator(),
-            )
-          : ListView.builder(
-              itemCount: chatrooms.length,
-              itemBuilder: (context, index) {
-                final chatroom = chatrooms[index];
-                final currentUserId =
-                    Provider.of<AuthProvider>(context, listen: false)
-                        .currentUser!
-                        .id;
+          ? Center(child: CircularProgressIndicator())
+          : chatrooms.isEmpty
+              ? Center(
+                  child: Text("No chat rooms created"),
+                )
+              : ListView.builder(
+                  itemCount: chatrooms.length,
+                  itemBuilder: (context, index) {
+                    final chatroom = chatrooms[index];
+                    final currentUserId =
+                        Provider.of<AuthProvider>(context, listen: false)
+                            .currentUser!
+                            .id;
 
-                final recipientId = chatroom.userIds
-                    .firstWhere((element) => element != currentUserId);
+                    final recipientId = chatroom.userIds
+                        .firstWhere((element) => element != currentUserId);
 
-                return GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => ChatScreen(
-                                chatRoomId: chatroom.id,
-                              )));
-                    },
-                    child: ChatRoomCard(
-                      chatRoom: chatroom,
-                      recipientID: recipientId,
-                    ));
-              }),
+                    return GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) => ChatScreen(
+                                    chatRoomId: chatroom.id,
+                                  )));
+                        },
+                        child: ChatRoomCard(
+                          chatRoom: chatroom,
+                          recipientID: recipientId,
+                        ));
+                  }),
     );
   }
 }

@@ -5,6 +5,9 @@ import 'package:recipe_flutter_app/screens/chat_room_screen.dart';
 import 'package:recipe_flutter_app/screens/create_recipe_screen.dart';
 import 'package:recipe_flutter_app/screens/home_screen.dart';
 import 'package:recipe_flutter_app/screens/notification_screen.dart';
+import 'package:recipe_flutter_app/screens/profile_screen.dart';
+import 'package:recipe_flutter_app/screens/search_screen.dart';
+import 'package:recipe_flutter_app/screens/settings_screen.dart';
 import 'package:recipe_flutter_app/services/chat_service.dart';
 import 'package:recipe_flutter_app/services/push_notification_service.dart';
 import 'package:recipe_flutter_app/utils.dart';
@@ -19,12 +22,14 @@ class NavigationScreen extends StatefulWidget {
 class _NavigationScreenState extends State<NavigationScreen> {
   late AuthProvider authProvider;
 
-  List<Widget> _pages = [
+  bool isUserProfileTab = false;
+
+  final List<Widget> _pages = [
     HomeScreen(),
-    Text("SEARCH PAGE"),
+    SearchScreen(),
     CreateRecipeScreen(),
-    Text("SETTINGS"),
-    Text("Profile")
+    SettingsScreen(),
+    ProfileScreen()
   ];
 
   @override
@@ -56,7 +61,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
         appBar: AppBar(
           title: Icon(
             Icons.food_bank_rounded,
-            color: Colors.amber,
+            color: Colors.amber.shade700,
             size: 35,
           ),
           actions: [
@@ -101,9 +106,20 @@ class _NavigationScreenState extends State<NavigationScreen> {
         ),
         bottomNavigationBar: TabBar(
           padding: EdgeInsets.only(top: 10),
-          labelColor: Colors.blue,
+          labelColor: Colors.amber.shade700,
           unselectedLabelColor: Colors.grey,
           indicatorColor: Colors.transparent,
+          onTap: (index) {
+            if (index == 4) {
+              setState(() {
+                isUserProfileTab = true;
+              });
+            } else {
+              setState(() {
+                isUserProfileTab = false;
+              });
+            }
+          },
           tabs: [
             Tab(
               icon: Icon(
@@ -120,7 +136,20 @@ class _NavigationScreenState extends State<NavigationScreen> {
             Tab(
               icon: Icon(Icons.settings, size: 40),
             ),
-            Tab(icon: Image.network(authProvider.currentUser!.image)),
+            Tab(
+              child: Container(
+                decoration: isUserProfileTab
+                    ? BoxDecoration(
+                        border:
+                            Border.all(width: 4, color: Colors.amber.shade700),
+                        shape: BoxShape.circle)
+                    : null,
+                child: CircleAvatar(
+                  backgroundImage:
+                      NetworkImage(authProvider.currentUser!.image),
+                ),
+              ),
+            ),
           ],
         ),
       ),

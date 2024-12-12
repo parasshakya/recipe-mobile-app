@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:recipe_flutter_app/main.dart';
 import 'package:recipe_flutter_app/models/recipe.dart';
+import 'package:recipe_flutter_app/providers/auth_provider.dart';
 import 'package:recipe_flutter_app/services/api_services.dart';
 
 class RecipeProvider extends ChangeNotifier {
   List<Recipe> _recipes = [];
+
+  List<Recipe> _myRecipes = [];
 
   bool hasMore = false;
 
@@ -46,5 +51,12 @@ class RecipeProvider extends ChangeNotifier {
     return recipe;
   }
 
-  getRecipesByUser() async {}
+  fetchMyRecipes() async {
+    final currentUser = Provider.of<AuthProvider>(
+            navigatorKey.currentState!.context,
+            listen: false)
+        .currentUser;
+    _myRecipes = await ApiService().getRecipesByUser(userId: currentUser!.id);
+    notifyListeners();
+  }
 }

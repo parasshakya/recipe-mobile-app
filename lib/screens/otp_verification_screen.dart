@@ -84,31 +84,55 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          TextField(
-            controller: otpController,
-            decoration: InputDecoration(
-                labelText: "Enter OTP to verify your account",
-                hintText: "Enter OTP Code"),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: TextField(
+              controller: otpController,
+              decoration: InputDecoration(
+                  labelText: "Enter OTP to verify your account",
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10))),
+            ),
           ),
-          ElevatedButton(
-              onPressed: () {
-                verifyOtp();
-              },
-              child: Text("Submit")),
+          SizedBox(
+            height: 30,
+          ),
+          Container(
+            width: 200,
+            child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber.shade200),
+                onPressed: () {
+                  verifyOtp();
+                },
+                child: Text(
+                  "Submit",
+                  style: TextStyle(color: Colors.black),
+                )),
+          ),
+          SizedBox(
+            height: 20,
+          ),
           Text("Didn't get the OTP ?"),
-          ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      isResendButtonDisabled ? Colors.grey : Colors.red),
-              onPressed: isResendButtonDisabled
-                  ? null
-                  : () {
-                      resendOTP();
-                    },
-              child: Text(
-                "Resend OTP",
-                style: TextStyle(color: Colors.white),
-              )),
+          SizedBox(
+            height: 10,
+          ),
+          Container(
+            width: 200,
+            child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        isResendButtonDisabled ? Colors.grey : Colors.red),
+                onPressed: isResendButtonDisabled
+                    ? null
+                    : () {
+                        resendOTP();
+                      },
+                child: Text(
+                  "Resend OTP",
+                  style: TextStyle(color: Colors.white),
+                )),
+          ),
           if (isResendButtonDisabled) ...[
             Text("Please wait $start seconds before resending OTP")
           ]

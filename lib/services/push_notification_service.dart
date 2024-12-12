@@ -22,7 +22,6 @@ import 'package:recipe_flutter_app/services/local_notification_service.dart';
 //the backgroundhandler cannot be used for navigation because it runs in a different isolate.
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print("BAckground message");
   if (message.data.containsKey("type")) {
     if (message.data["type"] == "chatMessage") {
       final chatRoomId = message.data["chatRoomId"];
@@ -106,8 +105,7 @@ class PushNotificationService {
     firebaseMessaging.getInitialMessage().then(handleMessage);
 
     firebaseMessaging.getToken().then((String? token) async {
-      print("getToken is called");
-      print("FCM Token: $token");
+      print("FCM Token of this device is: $token");
       // Send the token to your server to register the device
       if (token != null) {
         await ApiService().saveFcmToken(token);
@@ -115,7 +113,7 @@ class PushNotificationService {
     });
     firebaseMessaging.onTokenRefresh.listen((newToken) async {
       print("onTokenRefresh is called");
-      print(" New FCM Token: $newToken");
+      print(" New FCM Token after onTokenRefresh is: $newToken");
 
       // Send the new token to your server
       await ApiService().saveFcmToken(newToken);
