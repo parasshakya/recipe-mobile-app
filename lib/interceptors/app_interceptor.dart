@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:recipe_flutter_app/config/config.dart';
 import 'package:recipe_flutter_app/utils.dart';
 import 'package:recipe_flutter_app/main.dart';
-import 'package:recipe_flutter_app/providers/auth_provider.dart';
+import 'package:recipe_flutter_app/viewModels/user_auth_view_model.dart';
 
 class AppInterceptor extends Interceptor {
   final Dio dio;
@@ -104,7 +104,7 @@ class AppInterceptor extends Interceptor {
   Future<Response<dynamic>?> refreshAccessToken() async {
     try {
       final dio = Dio();
-      final authProvider = Provider.of<AuthProvider>(
+      final userAuthViewModel = Provider.of<UserAuthViewModel>(
           navigatorKey.currentState!.context,
           listen: false);
       // Assume you have the refresh token saved
@@ -129,7 +129,8 @@ class AppInterceptor extends Interceptor {
         print("Response data: ${e.response?.data}");
         print("Response status: ${e.response?.statusCode}");
         if (e.response?.statusCode == 401) {
-          await Provider.of<AuthProvider>(navigatorKey.currentState!.context,
+          await Provider.of<UserAuthViewModel>(
+                  navigatorKey.currentState!.context,
                   listen: false)
               .logout();
         }
