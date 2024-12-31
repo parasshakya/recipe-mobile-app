@@ -1,11 +1,8 @@
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:recipe_flutter_app/models/api_model.dart';
 import 'package:recipe_flutter_app/viewModels/user_auth_view_model.dart';
 
 class EditProfileScreen extends StatefulWidget {

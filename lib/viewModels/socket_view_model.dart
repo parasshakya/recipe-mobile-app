@@ -21,13 +21,11 @@ class SocketViewModel extends ChangeNotifier {
         listen: false);
 
     socket = socketModel.initializeSocket(userViewModel.currentUser!.id);
-    notifyListeners();
   }
 
   connect() {
     if (!socket!.connected) {
       socket = socket!.connect();
-      notifyListeners();
     }
   }
 

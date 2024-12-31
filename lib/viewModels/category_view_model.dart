@@ -13,11 +13,13 @@ class CategoryViewModel extends ChangeNotifier {
 
   String? categoriesError;
 
-  Category? _category;
+  Category? _categoryById;
+
+  Category? get categoryById => _categoryById;
 
   bool categoryLoading = false;
 
-  String? categoryError;
+  bool categoryError = false;
 
   CategoryViewModel({required this.categoryModel});
 
@@ -37,10 +39,11 @@ class CategoryViewModel extends ChangeNotifier {
   loadCategory(String categoryId) async {
     try {
       categoryLoading = true;
+      categoryError = false;
       notifyListeners();
-      _category = await categoryModel.fetchCategory(categoryId);
+      _categoryById = await categoryModel.fetchCategory(categoryId);
     } catch (e) {
-      categoryError = "Something went wrong";
+      categoryError = true;
     } finally {
       categoryLoading = false;
       notifyListeners();

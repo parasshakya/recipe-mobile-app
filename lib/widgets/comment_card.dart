@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_flutter_app/schemas/comment.dart';
-import 'package:recipe_flutter_app/schemas/recipe.dart';
 import 'package:recipe_flutter_app/schemas/user.dart';
-import 'package:recipe_flutter_app/models/api_model.dart';
 import 'package:recipe_flutter_app/viewModels/user_auth_view_model.dart';
 
 class CommentCard extends StatefulWidget {

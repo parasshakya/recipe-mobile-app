@@ -78,7 +78,8 @@ class AuthModel {
       final dio = Dio();
       final refreshToken = await _secureStorage.read(key: "refreshToken");
       final fcmToken = await _secureStorage.read(key: "fcmToken");
-      final response = await dio.post("${Config.baseUrl}/auth/logout", data: {
+      final response =
+          await dio.post("${Config.localBaseUrl}/auth/logout", data: {
         "refreshToken": refreshToken,
         "fcmToken": fcmToken,
       });

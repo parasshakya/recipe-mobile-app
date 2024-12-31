@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:recipe_flutter_app/schemas/recipe.dart';
 import 'package:recipe_flutter_app/viewModels/recipe_view_model.dart';
 import 'package:recipe_flutter_app/viewModels/user_auth_view_model.dart';
 import 'package:recipe_flutter_app/views/edit_profile_view.dart';
-import 'package:recipe_flutter_app/utils.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -16,31 +14,21 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   late UserAuthViewModel userAuthViewModel;
   late RecipeViewModel recipeViewModel;
-  List<Recipe> recipes = [];
-  bool recipeLoading = true;
 
   @override
   void initState() {
-    userAuthViewModel = Provider.of<UserAuthViewModel>(context, listen: false);
-    recipeViewModel = Provider.of<RecipeViewModel>(context, listen: false);
-    fetchRecipesOfCurrentUser();
+    userAuthViewModel = context.read<UserAuthViewModel>();
+    recipeViewModel = context.read<RecipeViewModel>();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      recipeViewModel.getRecipesByUser(userAuthViewModel.currentUser!.id);
+    });
     super.initState();
-  }
-
-  fetchRecipesOfCurrentUser() async {
-    try {
-      recipes = await recipeViewModel
-          .getRecipesByUser(userAuthViewModel.currentUser!.id);
-    } catch (e) {
-      showSnackbar("Could not fetch recipes. Please try again later.", context);
-    } finally {
-      recipeLoading = false;
-      setState(() {});
-    }
   }
 
   @override
   Widget build(BuildContext context) {
+    recipeViewModel = context.watch<RecipeViewModel>();
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -52,7 +40,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 radius: 50,
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 30,
             ),
             Row(
@@ -60,43 +48,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 Column(
                   children: [
-                    recipeLoading
-                        ? CircularProgressIndicator()
+                    recipeViewModel.recipesByUserLoading
+                        ? const CircularProgressIndicator()
                         : Text(
-                            recipes.length.toString(),
-                            style: TextStyle(fontSize: 24),
+                            recipeViewModel.recipesByUser.length.toString(),
+                            style: const TextStyle(fontSize: 24),
                           ),
-                    Text(
+                    const Text(
                       "posts",
                       style: TextStyle(fontSize: 24),
                     )
                   ],
                 ),
-                SizedBox(
+                const SizedBox(
                   width: 20,
                 ),
                 Column(
                   children: [
                     Text(
                       "${userAuthViewModel.currentUser!.followers.length}",
-                      style: TextStyle(fontSize: 24),
+                      style: const TextStyle(fontSize: 24),
                     ),
-                    Text(
+                    const Text(
                       "followers",
                       style: TextStyle(fontSize: 24),
                     )
                   ],
                 ),
-                SizedBox(
+                const SizedBox(
                   width: 20,
                 ),
                 Column(
                   children: [
                     Text(
                       "${userAuthViewModel.currentUser!.following.length}",
-                      style: TextStyle(fontSize: 24),
+                      style: const TextStyle(fontSize: 24),
                     ),
-                    Text(
+                    const Text(
                       "following",
                       style: TextStyle(fontSize: 24),
                     )
@@ -104,53 +92,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ],
             ),
-            SizedBox(
+            const SizedBox(
               height: 30,
             ),
             ElevatedButton(
                 onPressed: () {
                   Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => EditProfileScreen()));
+                      builder: (context) => const EditProfileScreen()));
                 },
-                child: Text("Edit profile")),
-            SizedBox(
+                child: const Text("Edit profile")),
+            const SizedBox(
               height: 30,
             ),
             Container(
               height: 50,
               color: Colors.grey.shade300,
-              child: Center(
+              child: const Center(
                 child: Icon(
                   Icons.fastfood_rounded,
                   color: Colors.black,
                 ),
               ),
             ),
-            recipeLoading
-                ? Padding(
-                    padding: const EdgeInsets.only(top: 30.0),
-                    child: Center(
-                      child: CircularProgressIndicator(),
-                    ),
+            recipeViewModel.recipesByUserLoading
+                ? const Center(
+                    child: CircularProgressIndicator(),
                   )
-                : recipes.isEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.only(top: 30.0),
-                        child: Center(
-                          child: Text("No posts to show"),
-                        ),
+                : recipeViewModel.recipesByUserError
+                    ? const Center(
+                        child: Text("Error while fetching recipes"),
                       )
                     : GridView.builder(
                         shrinkWrap: true,
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 3,
                           crossAxisSpacing: 4,
                           mainAxisSpacing: 4,
                         ),
-                        itemCount: recipes.length,
-                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: recipeViewModel.recipesByUser.length,
+                        physics: const NeverScrollableScrollPhysics(),
                         itemBuilder: (context, index) {
-                          final recipe = recipes[index];
+                          final recipe = recipeViewModel.recipesByUser[index];
                           return Image.network(recipe.image);
                         })
           ],

@@ -3,11 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:recipe_flutter_app/main.dart';
 import 'package:recipe_flutter_app/models/auth_model.dart';
 import 'package:recipe_flutter_app/models/user_model.dart';
 import 'package:recipe_flutter_app/schemas/user.dart';
-import 'package:recipe_flutter_app/views/otp_verification_view.dart';
 
 class UserAuthViewModel extends ChangeNotifier {
   final UserModel userModel;
@@ -15,11 +13,20 @@ class UserAuthViewModel extends ChangeNotifier {
 
   User? _currentUser;
 
+  bool currentUserLoading = false;
+
+  bool currentUserError = false;
+
   String? _otp;
 
   String? get otp => _otp;
 
+  User? _recipeUser;
+
+  User? get recipeUser => _recipeUser;
+
   String? otpError;
+  bool logoutError = false;
 
   bool otpLoading = false;
 
@@ -35,10 +42,21 @@ class UserAuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> logout() async {
-    await authModel.logout();
+  void setRecipeUser(User? user) {
+    _recipeUser = user;
+    notifyListeners();
+  }
 
-    _currentUser = null;
+  Future<void> logout() async {
+    try {
+      await authModel.logout();
+
+      _currentUser = null;
+      notifyListeners();
+    } catch (e) {
+      logoutError = true;
+      notifyListeners();
+    }
   }
 
   Future<void> login(String email, String password) async {
@@ -106,8 +124,20 @@ class UserAuthViewModel extends ChangeNotifier {
   }
 
   Future<User?> getUserById(String userId) async {
-    _currentUser = await userModel.getUserById(userId);
+    currentUserLoading = true;
+
+    currentUserError = false;
+
     notifyListeners();
+
+    try {
+      _currentUser = await userModel.getUserById(userId);
+    } catch (e) {
+      currentUserError = true;
+    } finally {
+      currentUserLoading = false;
+      notifyListeners();
+    }
     return _currentUser;
   }
 

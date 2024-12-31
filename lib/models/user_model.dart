@@ -27,18 +27,13 @@ class UserModel {
   final _secureStorage = const FlutterSecureStorage();
 
   Future<List<UserNotification>> fetchNotifications() async {
-    try {
-      final response = await dio.get("/notifications");
+    final response = await dio.get("/notifications");
 
-      if (response.statusCode != 200) throw ("Error fetching notifications");
+    if (response.statusCode != 200) throw ("Error fetching notifications");
 
-      print(response.data);
-      final data = response.data["data"] as List;
-      return data.map((e) => UserNotification.fromJson(e)).toList();
-    } catch (e) {
-      print("Error fetching notifications $e");
-      rethrow;
-    }
+    print(response.data);
+    final data = response.data["data"] as List;
+    return data.map((e) => UserNotification.fromJson(e)).toList();
   }
 
   Future<Response> signUp(
@@ -152,13 +147,11 @@ class UserModel {
   }
 
   Future<void> saveFcmToken(String fcmToken) async {
-    try {
-      final response =
-          await dio.post("/users/save-fcm-token", data: {"fcmToken": fcmToken});
-      await _secureStorage.write(key: "fcmToken", value: fcmToken);
-    } catch (e) {
-      print("Error saving fcm token");
-      throw Exception("Error saving Fcm Token: $e");
+    final response =
+        await dio.post("/users/save-fcm-token", data: {"fcmToken": fcmToken});
+    await _secureStorage.write(key: "fcmToken", value: fcmToken);
+    if (response.statusCode != 200) {
+      throw Exception("Error saving Fcm Token");
     }
   }
 
@@ -196,14 +189,14 @@ class UserModel {
   }
 
   Future<User> getUserById(String userId) async {
-    try {
-      final response = await dio.get("/users/$userId");
-      final data = response.data["data"];
-      final user = User.fromJson(data);
-      return user;
-    } catch (e) {
-      print("Error while fetching user: $e");
-      throw Exception("Error while fetching user");
+    final response = await dio.get("/users/$userId");
+    if (response.statusCode != 200) {
+      throw Exception("Error while fetching User");
     }
+    final data = response.data["data"];
+
+    final user = User.fromJson(data);
+
+    return user;
   }
 }

@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:recipe_flutter_app/config/config.dart';
 import 'package:recipe_flutter_app/schemas/comment.dart';
 import 'package:recipe_flutter_app/interceptors/app_interceptor.dart';
@@ -17,21 +16,14 @@ class RecipeModel {
     dio.interceptors.add(AppInterceptor(dio: dio));
   }
 
-  final _secureStorage = const FlutterSecureStorage();
-
   Future<Recipe> postLike(String recipeId) async {
-    try {
-      final response = await dio.post("/recipes/like/$recipeId");
-      if (response.statusCode != 200) {
-        throw Exception("Failed to post like");
-      }
-      final data = response.data;
-      final recipe = Recipe.fromJson(data["data"]);
-      return recipe;
-    } catch (e) {
-      print("Error posting like: $e");
-      rethrow;
+    final response = await dio.post("/recipes/like/$recipeId");
+    if (response.statusCode != 200) {
+      throw Exception("Failed to post like");
     }
+    final data = response.data;
+    final recipe = Recipe.fromJson(data["data"]);
+    return recipe;
   }
 
   Future<List<Comment>> getCommentsInARecipe(String recipeId) async {

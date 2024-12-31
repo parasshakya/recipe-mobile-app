@@ -35,9 +35,11 @@ class SearchScreen extends StatelessWidget {
               );
             }
 
-            if (recipeViewModel.searchRecipesError != null) {
-              showSnackbar("Something went wrong", context);
-              return Text(recipeViewModel.searchRecipesError!);
+            if (recipeViewModel.searchRecipesError) {
+              showSnackbar(
+                  "Something went wrong, Please try again later.", context);
+              return const Center(
+                  child: Text("Something went wrong, Please try again later."));
             }
 
             return ListView.builder(

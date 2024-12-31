@@ -45,9 +45,10 @@ class _NavigationScreenState extends State<NavigationScreen> {
     pushNotificationViewModel =
         Provider.of<PushNotificationViewModel>(context, listen: false);
 
-    initializeNotifications();
-    initializeSocket();
-
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      initializeNotifications();
+      initializeSocket();
+    });
     super.initState();
   }
 

@@ -22,111 +22,92 @@ class _HomeScreenState extends State<HomeScreen>
   late SocketViewModel socketViewModel;
 
   ScrollController scrollController = ScrollController();
-  bool loading = true;
-  // List<UserNotification> notifications = [];
-
-  bool fetchMoreLoading = false;
 
   @override
   bool get wantKeepAlive => true;
 
   fetchRecipes({bool isRefresh = false}) async {
-    if (fetchMoreLoading) {
-      return;
-    }
-    fetchMoreLoading = true;
-
     if (isRefresh) {
       recipeViewModel.clearRecipes();
       recipeViewModel.currentPage = 1;
     }
 
-    setState(() {});
-
-    try {
-      recipeViewModel = Provider.of<RecipeViewModel>(context, listen: false);
-      await recipeViewModel.loadAllRecipes();
-      if (recipeViewModel.hasMore) {
-        recipeViewModel.currentPage++;
-      }
-    } catch (e) {
-      showSnackbar("Error fetching recipes", context);
-    } finally {
-      setState(() {
-        fetchMoreLoading = false;
-        loading = false;
-      });
+    await recipeViewModel.loadAllRecipes();
+    if (recipeViewModel.hasMore) {
+      recipeViewModel.currentPage++;
     }
   }
 
   @override
   void initState() {
-    fetchRecipes();
-    // fetchNotifications();
-    scrollController.addListener(() {
-      if (scrollController.position.pixels ==
-              scrollController.position.maxScrollExtent &&
-          !fetchMoreLoading &&
-          recipeViewModel.hasMore) {
-        fetchRecipes();
-      }
+    userAuthViewModel = Provider.of<UserAuthViewModel>(context, listen: false);
+    recipeViewModel = Provider.of<RecipeViewModel>(context, listen: false);
+    socketViewModel = Provider.of<SocketViewModel>(context, listen: false);
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      fetchRecipes();
+      scrollController.addListener(() {
+        if (scrollController.position.pixels ==
+                scrollController.position.maxScrollExtent &&
+            !recipeViewModel.loading &&
+            recipeViewModel.hasMore) {
+          fetchRecipes();
+        }
+      });
     });
     super.initState();
-  }
-
-  logout() async {
-    try {
-      await userAuthViewModel.logout();
-      socketViewModel.dispose(); // socket connection for chat is disposed
-    } catch (e) {
-      showSnackbar(e.toString(), context);
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context); // Necessary for AutomaticKeepAliveClientMixin
-    userAuthViewModel = Provider.of<UserAuthViewModel>(context);
-    recipeViewModel = Provider.of<RecipeViewModel>(context);
     return SafeArea(
         child: Scaffold(
-      body: RefreshIndicator(
-        onRefresh: () async {
-          fetchRecipes(isRefresh: true);
-        },
-        child: loading
-            ? const Center(
-                child: CircularProgressIndicator(),
-              )
-            : recipeViewModel.totalRecipeCount == 0
-                ? Center(child: Text("no recipes found "))
-                : ListView.builder(
-                    controller: scrollController,
-                    physics: AlwaysScrollableScrollPhysics(),
-                    itemCount: recipeViewModel.recipes.length +
-                        (recipeViewModel.hasMore ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index == recipeViewModel.recipes.length) {
-                        return const SpinKitThreeBounce(
-                          color: Colors.red,
-                          size: 40,
-                        );
-                      }
+      body: RefreshIndicator(onRefresh: () async {
+        fetchRecipes(isRefresh: true);
+      }, child: Consumer<RecipeViewModel>(builder: (context, value, child) {
+        if (value.loading) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+        if (value.recipesError) {
+          showSnackbar(
+              "Failed to load recipe, Please try again later.", context);
+          return const Center(
+            child: Text("Failed to load recipes, Please try again later"),
+          );
+        }
 
-                      final recipe = recipeViewModel.recipes[index];
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) =>
-                                  RecipeDetailScreen(recipeId: recipe.id)));
-                        },
-                        child: RecipeCard(
-                            name: recipe.name,
-                            imageUrl: recipe.image,
-                            description: recipe.description),
-                      );
-                    }),
-      ),
+        if (value.totalRecipeCount == 0) {
+          return const Center(child: Text("no recipes found "));
+        }
+        return ListView.builder(
+            controller: scrollController,
+            physics: const AlwaysScrollableScrollPhysics(),
+            itemCount: value.recipes.length + (value.hasMore ? 1 : 0),
+            itemBuilder: (context, index) {
+              if (index == value.recipes.length) {
+                return const SpinKitThreeBounce(
+                  color: Colors.red,
+                  size: 40,
+                );
+              }
+
+              final recipe = value.recipes[index];
+              return GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) =>
+                          RecipeDetailScreen(recipeId: recipe.id)));
+                },
+                child: RecipeCard(
+                    name: recipe.name,
+                    imageUrl: recipe.image,
+                    description: recipe.description),
+              );
+            });
+      })),
     ));
   }
 }

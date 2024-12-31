@@ -13,15 +13,15 @@ class CuisineViewModel extends ChangeNotifier {
 
   bool cusinesLoading = false;
   bool cuisineByIdLoading = false;
-  String? cuisineByIdError;
+  bool cuisineByIdError = false;
 
   String? cuisinesError;
 
   Cuisine? _cuisineById;
 
-  get currentCuisine => _cuisineById;
+  get cuisineById => _cuisineById;
 
-  getCuisines() async {
+  loadAllCuisines() async {
     try {
       cusinesLoading = true;
       _cuisines = await cuisineModel.fetchCuisines();
@@ -33,16 +33,17 @@ class CuisineViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  getCuisine(String cuisineId) async {
+  loadCuisine(String cuisineId) async {
+    cuisineByIdLoading = true;
+    cuisineByIdError = false;
+    notifyListeners();
     try {
-      cuisineByIdLoading = true;
-      notifyListeners();
       _cuisineById = await cuisineModel.fetchCuisine(cuisineId);
     } catch (e) {
-      cuisineByIdError = "Something went wrong";
+      cuisineByIdError = true;
     } finally {
       cuisineByIdLoading = false;
+      notifyListeners();
     }
-    notifyListeners();
   }
 }

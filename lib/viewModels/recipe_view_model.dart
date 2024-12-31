@@ -4,6 +4,8 @@ import 'package:recipe_flutter_app/main.dart';
 import 'package:recipe_flutter_app/models/recipe_model.dart';
 import 'package:recipe_flutter_app/schemas/comment.dart';
 import 'package:recipe_flutter_app/schemas/recipe.dart';
+import 'package:recipe_flutter_app/viewModels/category_view_model.dart';
+import 'package:recipe_flutter_app/viewModels/cuisine_view_model.dart';
 import 'package:recipe_flutter_app/viewModels/user_auth_view_model.dart';
 
 class RecipeViewModel extends ChangeNotifier {
@@ -13,13 +15,15 @@ class RecipeViewModel extends ChangeNotifier {
 
   List<Recipe> _recipes = [];
 
+  bool recipesError = false;
+
   List<Recipe> _searchRecipes = [];
 
   List<Recipe> get searchRecipes => _searchRecipes;
 
   bool searchRecipesLoading = false;
 
-  String? searchRecipesError;
+  bool searchRecipesError = false;
 
   List<Recipe> _myRecipes = [];
 
@@ -27,13 +31,19 @@ class RecipeViewModel extends ChangeNotifier {
 
   Recipe? get recipeById => _recipeById;
 
+  bool initRecipeError = false;
+
+  bool recipeByIdError = false;
+
+  bool recipeByIdLiked = false;
+
   List<Recipe> _recipesByUser = [];
 
   List<Recipe> get recipesByUser => _recipesByUser;
 
   bool recipesByUserLoading = false;
 
-  String? recipesByUserError;
+  bool recipesByUserError = false;
 
   bool _loading = false;
 
@@ -49,19 +59,23 @@ class RecipeViewModel extends ChangeNotifier {
 
   List<Comment> _commentsInARecipe = [];
 
-  List<String>? _likesInARecipe;
+  List<String> _likesInARecipe = [];
 
-  List<String>? get likesInARecipe => _likesInARecipe;
+  List<String> get likesInARecipe => _likesInARecipe;
 
   bool likesInARecipeLoading = false;
 
-  String? likesInARecipeError;
+  bool likesInARecipeError = false;
+
+  bool isRecipeLiked = false;
+
+  bool initRecipeLoading = true;
 
   List<Comment> get commentsInARecipe => _commentsInARecipe;
 
   bool commentsInARecipeLoading = false;
 
-  String? commentsInARecipeError;
+  bool commentsInARecipeError = false;
 
   bool hasMore = false;
 
@@ -77,48 +91,80 @@ class RecipeViewModel extends ChangeNotifier {
   }
 
   Future<void> loadAllRecipes({int limit = 10}) async {
-    _loading = true;
-    notifyListeners();
+    try {
+      if (loading) {
+        return;
+      }
 
-    final response =
-        await recipeModel.getAllRecipes(limit: limit, page: currentPage);
+      _loading = true;
+      notifyListeners();
 
-    hasMore = response.data['data']['hasMore'];
+      final response =
+          await recipeModel.getAllRecipes(limit: limit, page: currentPage);
 
-    totalRecipeCount = response.data["data"]["totalRecipes"];
+      hasMore = response.data['data']['hasMore'];
 
-    final recipes = response.data['data']['recipes'] as List;
+      totalRecipeCount = response.data["data"]["totalRecipes"];
 
-    print("TOTAL RECIPE $totalRecipeCount");
-    print("HAS MORE $hasMore");
+      final recipes = response.data['data']['recipes'] as List;
 
-    _recipes.addAll(recipes.map((e) => Recipe.fromJson(e)));
+      print("TOTAL RECIPE $totalRecipeCount");
+      print("HAS MORE $hasMore");
+
+      _recipes.addAll(recipes.map((e) => Recipe.fromJson(e)));
+
+      notifyListeners();
+    } catch (e) {
+      recipesError = true;
+      notifyListeners();
+    }
+
     _loading = false;
-
     notifyListeners();
   }
 
   Future<void> loadCommentsInARecipe(String recipeId) async {
     try {
       commentsInARecipeLoading = true;
+      commentsInARecipeError = false;
       notifyListeners();
+
       _commentsInARecipe = await recipeModel.getCommentsInARecipe(recipeId);
     } catch (e) {
-      print(e);
-      commentsInARecipeError = "Something went wrong";
+      commentsInARecipeError = true;
     } finally {
       commentsInARecipeLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> getById(String recipeId) async {
-    _recipeByIdLoading = true;
+  initializeRecipe(String recipeId, BuildContext context) async {
+    initRecipeLoading = true;
+    initRecipeError = false;
     notifyListeners();
-    _recipeById = await recipeModel.getRecipeById(recipeId);
 
-    _recipeByIdLoading = false;
-    notifyListeners();
+    try {
+      _recipeById = await recipeModel.getRecipeById(recipeId);
+      getIsLikedForRecipe(context);
+
+      final userAuthViewModel =
+          Provider.of<UserAuthViewModel>(context, listen: false);
+
+      final recipeUser =
+          await userAuthViewModel.getUserById(recipeById!.userId);
+      userAuthViewModel.setRecipeUser(recipeUser);
+
+      await Provider.of<CuisineViewModel>(context, listen: false)
+          .loadCuisine(recipeById!.cuisineId);
+      await Provider.of<CategoryViewModel>(context, listen: false)
+          .loadCategory(recipeById!.categoryId);
+      await loadCommentsInARecipe(recipeId);
+    } catch (e) {
+      initRecipeError = true;
+    } finally {
+      initRecipeLoading = false;
+      notifyListeners();
+    }
   }
 
   fetchMyRecipes() async {
@@ -138,10 +184,11 @@ class RecipeViewModel extends ChangeNotifier {
   getRecipesByUser(String userId) async {
     try {
       recipesByUserLoading = true;
+      recipesByUserError = false;
       notifyListeners();
       _recipesByUser = await recipeModel.getRecipesByUser(userId: userId);
     } catch (e) {
-      recipesByUserError = "Something went wrong";
+      recipesByUserError = true;
     } finally {
       recipesByUserLoading = false;
     }
@@ -159,11 +206,13 @@ class RecipeViewModel extends ChangeNotifier {
   postComment(String recipeId, String text) async {
     try {
       commentsInARecipeLoading = true;
+      commentsInARecipeError = false;
       notifyListeners();
+
       final recipe = await recipeModel.postComment(recipeId, text);
       _commentsInARecipe = await recipeModel.getCommentsInARecipe(recipe.id);
     } catch (e) {
-      commentsInARecipeError = "Something went wrong";
+      commentsInARecipeError = true;
     } finally {
       commentsInARecipeLoading = false;
       notifyListeners();
@@ -171,22 +220,38 @@ class RecipeViewModel extends ChangeNotifier {
   }
 
   postLikes(String recipeId) async {
+    toggleLikeInRecipeById(); // quickly show the user the like state change
+
     try {
-      likesInARecipeLoading = true;
-      notifyListeners();
       _recipeById = await recipeModel.postLike(recipeId);
-      _likesInARecipe = recipeById!.likeIds!;
     } catch (e) {
-      print(e);
-      likesInARecipeError = "Something went wrong";
+      likesInARecipeError = true;
+      toggleLikeInRecipeById(); // in case the like operation fails in backend
     } finally {
-      likesInARecipeLoading = false;
       notifyListeners();
     }
   }
 
+  getIsLikedForRecipe(BuildContext context) {
+    final userAuthViewModel = context.read<UserAuthViewModel>();
+    if (recipeById!.likeIds!.contains(userAuthViewModel.currentUser!.id)) {
+      isRecipeLiked = true;
+    } else {
+      isRecipeLiked = false;
+    }
+    notifyListeners();
+  }
+
+  toggleLikeInRecipeById() {
+    isRecipeLiked = !isRecipeLiked;
+    notifyListeners();
+  }
+
   searchForRecipes(String query) async {
     try {
+      searchRecipesError = false;
+      notifyListeners();
+
       if (query.isEmpty) {
         _searchRecipes = [];
         notifyListeners();
@@ -198,7 +263,7 @@ class RecipeViewModel extends ChangeNotifier {
 
       _searchRecipes = await recipeModel.searchForRecipes(query);
     } catch (e) {
-      searchRecipesError = "Something went wrong";
+      searchRecipesError = true;
     } finally {
       searchRecipesLoading = false;
       notifyListeners();
