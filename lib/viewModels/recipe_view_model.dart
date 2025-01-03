@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recipe_flutter_app/main.dart';
@@ -84,6 +86,8 @@ class RecipeViewModel extends ChangeNotifier {
   int totalRecipeCount = 0;
 
   int currentPage = 1;
+
+  Timer? timer;
 
   clearRecipes() {
     _recipes = [];
@@ -247,26 +251,34 @@ class RecipeViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  searchForRecipes(String query) async {
-    try {
-      searchRecipesError = false;
-      notifyListeners();
+  void searchForRecipes(String query) async {
+    // Cancel the previous timer if it exists
+    timer?.cancel();
 
-      if (query.isEmpty) {
-        _searchRecipes = [];
-        notifyListeners();
-        return;
-      }
+    // Reset the state for a new search
+    searchRecipesError = false;
+    searchRecipesLoading = true;
+    notifyListeners();
 
-      searchRecipesLoading = true;
+    if (query.isEmpty) {
+      _searchRecipes = [];
+      searchRecipesLoading = false; // No need to keep loading state
       notifyListeners();
-
-      _searchRecipes = await recipeModel.searchForRecipes(query);
-    } catch (e) {
-      searchRecipesError = true;
-    } finally {
-      searchRecipesLoading = false;
-      notifyListeners();
+      return;
     }
+
+    // Debounce the API call
+    timer = Timer(const Duration(milliseconds: 300), () async {
+      try {
+        final results = await recipeModel.searchForRecipes(query);
+        _searchRecipes = results;
+      } catch (e) {
+        searchRecipesError = true;
+        _searchRecipes = [];
+      } finally {
+        searchRecipesLoading = false;
+        notifyListeners(); // Notify after all updates are complete
+      }
+    });
   }
 }
