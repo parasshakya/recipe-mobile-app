@@ -281,4 +281,10 @@ class RecipeViewModel extends ChangeNotifier {
       }
     });
   }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
+  }
 }
